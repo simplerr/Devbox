@@ -15,6 +15,11 @@
 #include "StaticObject.h"
 #include "ShadowMap.h"
 #include "GlibStd.h"
+#include "ActorManager.h"
+#include "Actor.h"
+#include "TransformComponent.h"
+#include "BoundingBoxComponent.h"
+#include "ActorFactory.h"
 
 using namespace GLib;
 
@@ -36,7 +41,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 	Logger::Init("log.txt");
 
 	GLIB_INFO("hehe");
-	GLIB_FATAL("Game", "WinMain");
 
 	// Init the app.
 	auto i = GlobalApp::GetGame();
@@ -78,24 +82,21 @@ void Game::Init()
 
 	mDrawDebug = false;
 
+	mActorManager = new ActorManager;
+	mActorFactory = new ActorFactory("actors.lua");
+
+	auto actor = mActorFactory->CreateActor("TestActor");
+
+	mActorFactory->AddComponentToActor(actor, TransformComponent::g_Name);
+	mActorFactory->AddComponentToActor(actor, BoundingBoxComponent::g_Name);
+	
+	mActorManager->AddActor(actor);
+
 	mWorld = new World();
 	mWorld->Init(GetGraphics());
 
 	// Connect the graphics light list.
 	GLib::GlobalApp::GetGraphics()->SetLightList(mWorld->GetLights());
-
-	GLib::StaticObject* object = nullptr;
-	
-	for(int i = 0; i < 10; i++)
-	{
-		for(int y = 0; y < 10; y++)
-		{
-			object = new GLib::StaticObject(GetGraphics()->GetModelImporter(), "data/models/misc/Crate.obj");
-			object->SetPosition(XMFLOAT3(i * 20, 10, y * 20));
-			object->SetScale(XMFLOAT3(3, 3, 3));
-			mWorld->AddObject(object);
-		}
-	}
 }
 
 void Game::Update(GLib::Input* pInput, float dt)
@@ -103,6 +104,7 @@ void Game::Update(GLib::Input* pInput, float dt)
 	GetGraphics()->Update(pInput, dt);
 
 	mWorld->Update(dt);
+	mActorManager->Update(dt);
 
 	if(pInput->KeyPressed(VK_F1))
 		mDrawDebug = !mDrawDebug;
@@ -121,6 +123,7 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	pGraphics->ClearScene();
 
 	mWorld->Draw(pGraphics);
+	mActorManager->Draw(pGraphics);
 
 	pGraphics->DrawBillboards();
 

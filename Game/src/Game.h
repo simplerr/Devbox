@@ -20,8 +20,8 @@ namespace GLib {
 
 class ControlManager;
 class GameState;
-class Arena;
-class Client;
+class ActorManager;
+class ActorFactory;
 
 #pragma endregion
 
@@ -41,4 +41,6 @@ public:
 private:
 	bool mDrawDebug;
 	GLib::World* mWorld;
+	ActorManager* mActorManager;
+	ActorFactory* mActorFactory;
 };

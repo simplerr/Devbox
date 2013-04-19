@@ -76,3 +76,4 @@ namespace GLib
 		return mRunnable->GetClientHeight();
 	}
 }
+

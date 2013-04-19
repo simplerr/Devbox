@@ -1,6 +1,6 @@
 #include "Primitive.h"
 #include "Vertex.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include <vector>
 
 using namespace std;

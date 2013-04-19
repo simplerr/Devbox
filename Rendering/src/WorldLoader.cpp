@@ -54,19 +54,19 @@ namespace GLib
 		// Load all objects.
 		//
 		int objects, type;
-		string name, fileName;
+		string name, fileName, trash;
 		XMFLOAT3 pos, rot, sca;
 		fin >> ignore >> ignore >> objects;
 		for(int i = 0; i < objects; i++)
 		{
 			Object3D* object = nullptr;
 
-			fin >> type;	// Object type
-			fin >> name;	// Name
-			fin >> pos.x >> pos.y >> pos.z;	// Position
-			fin >> rot.x >> rot.y >> rot.z;	// Rotation
-			fin >> sca.x >> sca.y >> sca.z;	// Scale
-			fin >> fileName;
+			fin >> trash >> type;	// Object type
+			fin >> trash >> name;	// Name
+			fin >> trash >> pos.x >> trash >> pos.y >>  trash >> pos.z;	// Position
+			fin >> trash >> rot.x >> trash >> rot.y >> trash >> rot.z;	// Rotation
+			fin >> trash >> sca.x >> trash >> sca.y >> trash >> sca.z;	// Scale
+			fin >> trash >> fileName;
 
 			if(type == STATIC_OBJECT)		// Static object
 				object = new StaticObject(GlobalApp::GetGraphics()->GetModelImporter(), fileName);
@@ -79,14 +79,14 @@ namespace GLib
 				XMFLOAT4 ambient, diffuse, specular;
 				XMFLOAT3 intensity, att;
 
-				fin >> lightType;	// Light type
-				fin >> ambient.x >> ambient.y >> ambient.z >> ambient.w;		// Ambient
-				fin >> diffuse.x >> diffuse.y >> diffuse.z >> diffuse.w;		// Diffuse
-				fin >> specular.x >> specular.y >> specular.z >> specular.w;	// Specular
-				fin >> intensity.x >> intensity.y >> intensity.z;	// Intensity
-				fin >> att.x >> att.y >> att.z;	// Att
-				fin >> range;					// Range
-				fin >> spot;					// Spot
+				fin >> trash >> lightType;	// Light type
+				fin >> trash >> ambient.x >> trash >> ambient.y >> trash >> ambient.z >> trash >> ambient.w;		// Ambient
+				fin >> trash >> diffuse.x >> trash >> diffuse.y >> trash >> diffuse.z >> trash >> diffuse.w;		// Diffuse
+				fin >> trash >> specular.x >> trash >> specular.y >> trash >> specular.z >> trash >> specular.w;	// Specular
+				fin >> trash >> intensity.x >> trash >> intensity.y >> trash >> intensity.z;	// Intensity
+				fin >> trash >> att.x >> trash >> att.y >> trash >> att.z;	// Att
+				fin >> trash >> range;					// Range
+				fin >> trash >> spot;					// Spot
 
 				object = new LightObject();
 				object->SetMaterials(Material(ambient, diffuse, specular));

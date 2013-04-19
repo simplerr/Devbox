@@ -9,7 +9,7 @@ namespace GLib {
 	//!
 	//	Represents an animated object. 
 	//!
-	class AnimatedObject : public Object3D
+	class GLIB_API AnimatedObject : public Object3D
 	{
 	public:
 		AnimatedObject(ModelImporter* importer, string filename);

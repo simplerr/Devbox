@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Vertex.h"
 #include "Light.h"
 

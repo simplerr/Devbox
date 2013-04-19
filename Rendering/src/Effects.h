@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <xnamath.h>
 #include <vector>
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Light.h"
 
 using namespace std;

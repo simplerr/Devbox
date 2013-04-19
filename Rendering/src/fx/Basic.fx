@@ -236,7 +236,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	// Get the shadow factor.
 	float shadow = 1.0f;
-	shadow = CalcShadowFactor(samShadow, gShadowMap, pin.ShadowPosH);
+	//shadow = CalcShadowFactor(samShadow, gShadowMap, pin.ShadowPosH);
 
 	// Apply lighting.
 	float4 litColor;

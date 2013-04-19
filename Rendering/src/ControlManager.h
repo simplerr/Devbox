@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "d3dUtil.h"
+#include "Utility.h"
 using namespace std;
 
 namespace GLib {

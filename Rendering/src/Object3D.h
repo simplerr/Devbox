@@ -4,6 +4,7 @@
 #include "d3dx11Effect.h"
 #include "Light.h"
 #include "xnacollision.h"
+#include "defs.h"
 
 using namespace XNA;
 
@@ -35,7 +36,7 @@ namespace GLib {
 	//	Abstract base class for all objects.
 	//	Has a position, rotation and scale.
 	//!
-	class Object3D
+	class GLIB_API Object3D
 	{
 	public:
 		Object3D(ObjectType type, XMFLOAT3 position = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3 rotation = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3 scale = XMFLOAT3(1.0f, 1.0f, 1.0f));

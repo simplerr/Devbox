@@ -1,5 +1,5 @@
 #include "PrimitiveFactory.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Runnable.h"
 #include "D3DCore.h"
 #include <D3DX11.h>

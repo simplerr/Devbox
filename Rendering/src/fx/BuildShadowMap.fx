@@ -49,6 +49,6 @@ technique11 BuildShadowMapTech
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(NULL);
-		//SetRasterizerState(Depth);
+		SetRasterizerState(Depth);
     }
 }

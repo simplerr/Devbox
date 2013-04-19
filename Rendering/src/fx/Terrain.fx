@@ -21,10 +21,6 @@ cbuffer cbPerFrame
 	float gTexelCellSpaceV;
 	float gWorldCellSpace;
 	float gTexScale = 1.0f;	// Default = 1.0f
-	
-	float2	gToolCenter;
-	float	gToolRadius;
-	float	gArenaRadius;
 };
 
 cbuffer cbPerObject
@@ -147,38 +143,20 @@ float4 PS(VertexOut pin) : SV_Target
 	// Sample the blend map.
 	float4 t  = gBlendMap.Sample( samLinear, pin.Tex ); 
     
-	// [NOTE]
-	//if(sqrt(pin.PosW.x * pin.PosW.x + pin.PosW.z * pin.PosW.z) > 60.0f)
-	//	c0.r *= 3.4f;
-
-	// [NOTE][HACK] Some FPS problem in the pixel shader, just return the texture color for now.
-	// Seems to be ApplyLighting that causes it.
-	//return c0*1.3;
-
     // Blend the layers on top of each other.
     float4 texColor = c0;
-	/*texColor = lerp(texColor, c1, t.r);
+	texColor = lerp(texColor, c1, t.r);
 	texColor = lerp(texColor, c2, t.g);
 	texColor = lerp(texColor, c3, t.b);
-	texColor = lerp(texColor, c4, t.a);*/
-
-	// [NOTE][HACK] REMOVE!!
-	float distFromMid = sqrt(pin.PosW.x * pin.PosW.x + pin.PosW.z * pin.PosW.z);
-	texColor = lerp(texColor, c4, max(min((distFromMid - gArenaRadius) / 10, 1), 0));
+	texColor = lerp(texColor, c4, t.a);
 
 	// Get the shadow factor.
 	float shadow = 1.0f;
-	shadow = CalcShadowFactor(samShadow, gShadowMap, pin.ShadowPosH);
+	//shadow = CalcShadowFactor(samShadow, gShadowMap, pin.ShadowPosH);
 
 	// Apply lighting.
 	float4 litColor;
 	ApplyLighting(gNumLights, gLights, gMaterial, pin.PosW, normalW, toEye, texColor, shadow, litColor);
-
-	// Apply terrain tool highlight.
-	float2 vectorDist = float2(pin.PosW.x, pin.PosW.z) - gToolCenter;
-	float dist = sqrt(vectorDist.x*vectorDist.x + vectorDist.y*vectorDist.y);
-	if(dist < gToolRadius)
-		litColor.b += 0.4f;
 
 	//! Apply fogging.
 	float fogLerp = saturate((distToEye - gFogStart) / gFogRange); 

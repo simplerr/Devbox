@@ -1,5 +1,5 @@
 #pragma once
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Graphics.h"
 #include "D3DCore.h"
 

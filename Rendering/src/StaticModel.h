@@ -1,6 +1,6 @@
 #pragma once
 
-#include "d3dUtil.h"
+#include "Utility.h"
 
 //! Graphics Library namespace.
 namespace GLib

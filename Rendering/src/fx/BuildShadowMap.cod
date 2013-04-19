@@ -99,6 +99,7 @@ fxgroup
             };
             GeometryShader = NULL;
             PixelShader = NULL;
+            RasterizerState = Depth;
         }
 
     }

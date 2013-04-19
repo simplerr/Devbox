@@ -1,5 +1,5 @@
 #include "D3DCore.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Runnable.h"
 
 //! Graphics Library namespace.

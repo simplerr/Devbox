@@ -1,5 +1,5 @@
 #pragma once
-#include "d3dUtil.h"
+#include "Utility.h"
 
 /**
 	The steps to use shadow mapping:
@@ -22,7 +22,7 @@ namespace GLib
 	//	Contains the shadow map texture with depth values.
 	//	Contains matrices representing the light space, and the transform matrix to the texture space.
 	//!
-	class ShadowMap
+	class GLIB_API ShadowMap
 	{
 	public:
 		ShadowMap(ID3D11Device* device, UINT width, UINT height);

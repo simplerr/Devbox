@@ -15,9 +15,6 @@ cbuffer cbPerFrame
     float   gTexelCellSpaceV;           // Offset: 1172, size:    4
     float   gWorldCellSpace;            // Offset: 1176, size:    4
     float   gTexScale = 1;              // Offset: 1180, size:    4
-    float2  gToolCenter;                // Offset: 1184, size:    8
-    float   gToolRadius;                // Offset: 1192, size:    4
-    float   gArenaRadius;               // Offset: 1196, size:    4
 }
 
 cbuffer cbPerObject
@@ -135,13 +132,13 @@ fxgroup
                 dcl_output o3.xyzw
                 dcl_temps 5
                 
-                #line 94 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
+                #line 90 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
                 sample_l_indexable(texture2d)(float,float,float,float) r0.y, v2.xyxx, t0.yxzw, s0, l(0.000000)  // vin<1:Inf>
                 mov r1.y, r0.y  // vin<1:Inf>
                 mov r1.xz, v0.xxzx  // vout<4,6>
                 mov r1.y, r1.y  // vout<5:Inf>
                 
-                #line 98
+                #line 94
                 mov r0.xz, v0.xxzx
                 mov r0.w, l(1.000000)
                 dp4 r2.x, r0.xyzw, cb0[0].xyzw  // vout<0:NaN:Inf>
@@ -149,10 +146,10 @@ fxgroup
                 dp4 r2.z, r0.xyzw, cb0[2].xyzw  // vout<2:NaN:Inf>
                 dp4 r2.w, r0.xyzw, cb0[3].xyzw  // vout<3:NaN:Inf>
                 
-                #line 101
+                #line 97
                 mov r3.xy, v2.xyxx  // vout<7,8>
                 
-                #line 104
+                #line 100
                 dp4 r4.x, r0.xyzw, cb0[4].xyzw  // vout<9:NaN:Inf>
                 dp4 r4.y, r0.xyzw, cb0[5].xyzw  // vout<10:NaN:Inf>
                 dp4 r4.z, r0.xyzw, cb0[6].xyzw  // vout<11:NaN:Inf>
@@ -207,9 +204,6 @@ fxgroup
                 //   float gWorldCellSpace;             // Offset: 1176 Size:     4
                 //   float gTexScale;                   // Offset: 1180 Size:     4
                 //      = 0x3f800000 
-                //   float2 gToolCenter;                // Offset: 1184 Size:     8
-                //   float gToolRadius;                 // Offset: 1192 Size:     4
-                //   float gArenaRadius;                // Offset: 1196 Size:     4
                 //
                 // }
                 //
@@ -237,10 +231,9 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // samLinear                         sampler      NA          NA    0        1
                 // samHeightmap                      sampler      NA          NA    1        1
-                // samShadow                       sampler_c      NA          NA    2        1
                 // gLayerMapArray                    texture  float4     2darray    0        1
-                // gHeightMap                        texture  float4          2d    1        1
-                // gShadowMap                        texture  float4          2d    2        1
+                // gBlendMap                         texture  float4          2d    1        1
+                // gHeightMap                        texture  float4          2d    2        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
                 // cbPerObject                       cbuffer      NA          NA    1        1
                 //
@@ -253,7 +246,7 @@ fxgroup
                 // SV_POSITION              0   xyzw        0      POS  float       
                 // POSITION                 0   xyz         1     NONE  float   xyz 
                 // TEXCOORD                 0   xy          2     NONE  float   xy  
-                // TEXCOORD                 1   xyzw        3     NONE  float   xyzw
+                // TEXCOORD                 1   xyzw        3     NONE  float       
                 //
                 //
                 // Output signature:
@@ -264,21 +257,19 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed
-                dcl_constantbuffer cb0[75], dynamicIndexed
+                dcl_constantbuffer cb0[74], dynamicIndexed
                 dcl_constantbuffer cb1[11], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_default
-                dcl_sampler s2, mode_comparison
                 dcl_resource_texture2darray (float,float,float,float) t0
                 dcl_resource_texture2d (float,float,float,float) t1
                 dcl_resource_texture2d (float,float,float,float) t2
                 dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xy
-                dcl_input_ps linear v3.xyzw
                 dcl_output o0.xyzw
                 dcl_temps 27
                 
-                #line 112 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
+                #line 108 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
                 mov r0.x, -cb0[73].x
                 mov r0.y, l(0)
                 add r0.xy, r0.xyxx, v2.xyxx  // leftTex<0:Inf,1>
@@ -291,13 +282,13 @@ fxgroup
                 mov r2.x, l(0)
                 mov r2.y, -cb0[73].y
                 add r1.zw, r2.xxxy, v2.xxxy  // topTex<0,1:Inf>
-                sample_l_indexable(texture2d)(float,float,float,float) r0.x, r0.xyxx, t1.xyzw, s1, l(0.000000)
+                sample_l_indexable(texture2d)(float,float,float,float) r0.x, r0.xyxx, t2.xyzw, s1, l(0.000000)
                 mov r0.x, r0.x  // leftY<0:Inf>
-                sample_l_indexable(texture2d)(float,float,float,float) r0.y, r0.zwzz, t1.yxzw, s1, l(0.000000)
+                sample_l_indexable(texture2d)(float,float,float,float) r0.y, r0.zwzz, t2.yxzw, s1, l(0.000000)
                 mov r0.y, r0.y  // rightY<0:Inf>
-                sample_l_indexable(texture2d)(float,float,float,float) r0.z, r1.xyxx, t1.yzxw, s1, l(0.000000)
+                sample_l_indexable(texture2d)(float,float,float,float) r0.z, r1.xyxx, t2.yzxw, s1, l(0.000000)
                 mov r0.z, r0.z  // bottomY<0:Inf>
-                sample_l_indexable(texture2d)(float,float,float,float) r0.w, r1.zwzz, t1.yzwx, s1, l(0.000000)
+                sample_l_indexable(texture2d)(float,float,float,float) r0.w, r1.zwzz, t2.yzwx, s1, l(0.000000)
                 mov r0.w, r0.w  // topY<0:Inf>
                 mov r0.x, -r0.x
                 add r1.z, r0.x, r0.y
@@ -307,7 +298,7 @@ fxgroup
                 rsq r0.x, r0.x
                 mul r1.xyz, r0.xxxx, r1.xyzx  // tangent<2: 0f,0:NaN:Inf,1:NaN:Inf>
                 
-                #line 123
+                #line 119
                 mov r0.x, -r0.w
                 add r0.x, r0.x, r0.z
                 mov r0.z, l(0)
@@ -320,130 +311,91 @@ fxgroup
                 mov r0.xyz, -r0.xyzx
                 add r0.xyz, r0.xyzx, r2.xyzx  // normalW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
-                #line 127
+                #line 123
                 mov r1.xyz, -v1.xyzx
                 add r1.xyz, r1.xyzx, cb0[70].yzwy  // toEye<0:Inf,1:Inf,2:Inf>
                 
-                #line 130
+                #line 126
                 dp3 r0.w, r1.xyzx, r1.xyzx
                 sqrt r0.w, r0.w  // distToEye<0:NaN:Inf>
                 
-                #line 133
+                #line 129
                 div r1.xyz, r1.xyzx, r0.wwww  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
-                #line 138
+                #line 134
                 mul r2.xy, v2.xyxx, cb0[73].wwww  // scaledTex<0:Inf,1:Inf>
                 
-                #line 141
+                #line 137
                 mov r2.z, l(0)
                 sample_indexable(texture2darray)(float,float,float,float) r3.xyzw, r2.xyzx, t0.xyzw, s0  // c0<0:Inf,1:Inf,2:Inf,3:Inf>
+                mov r2.w, l(1.000000)
+                sample_indexable(texture2darray)(float,float,float,float) r4.xyzw, r2.xywx, t0.xyzw, s0  // c1<0:Inf,1:Inf,2:Inf,3:Inf>
+                mov r2.z, l(2.000000)
+                sample_indexable(texture2darray)(float,float,float,float) r5.xyzw, r2.xyzx, t0.xyzw, s0  // c2<0:Inf,1:Inf,2:Inf,3:Inf>
+                mov r2.w, l(3.000000)
+                sample_indexable(texture2darray)(float,float,float,float) r6.xyzw, r2.xywx, t0.xyzw, s0  // c3<0:Inf,1:Inf,2:Inf,3:Inf>
+                mov r2.z, l(4.000000)
+                sample_indexable(texture2darray)(float,float,float,float) r2.xyzw, r2.xyzx, t0.xyzw, s0  // c4<0:Inf,1:Inf,2:Inf,3:Inf>
                 
-                #line 145
-                mov r2.w, l(4.000000)
-                sample_indexable(texture2darray)(float,float,float,float) r2.xyzw, r2.xywx, t0.xyzw, s0  // c4<0:Inf,1:Inf,2:Inf,3:Inf>
+                #line 144
+                sample_indexable(texture2d)(float,float,float,float) r7.xyzw, v2.xyxx, t1.xyzw, s0  // t<0:Inf,1:Inf,2:Inf,3:Inf>
                 
-                #line 159
+                #line 147
                 mov r3.xyzw, r3.xyzw  // texColor<0:Inf,1:Inf,2:Inf,3:Inf>
-                
-                #line 166
-                mul r1.w, v1.x, v1.x
-                mul r4.x, v1.z, v1.z
-                add r1.w, r1.w, r4.x
-                sqrt r1.w, r1.w  // distFromMid<0:NaN:Inf>
-                mov r4.x, -cb0[74].w
-                add r1.w, r1.w, r4.x
-                div r1.w, r1.w, l(10.000000)
-                min r1.w, r1.w, l(1.000000)
-                max r1.w, r1.w, l(0.000000)
+                mov r8.xyzw, -r3.xyzw
+                add r4.xyzw, r4.xyzw, r8.xyzw
+                mul r4.xyzw, r4.xyzw, r7.xxxx
+                add r3.xyzw, r3.xyzw, r4.xyzw  // texColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
+                mov r4.xyzw, -r3.xyzw
+                add r4.xyzw, r4.xyzw, r5.xyzw
+                mul r4.xyzw, r4.xyzw, r7.yyyy
+                add r3.xyzw, r3.xyzw, r4.xyzw  // texColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
+                mov r4.xyzw, -r3.xyzw
+                add r4.xyzw, r4.xyzw, r6.xyzw
+                mul r4.xyzw, r4.xyzw, r7.zzzz
+                add r3.xyzw, r3.xyzw, r4.xyzw  // texColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
                 mov r4.xyzw, -r3.xyzw
                 add r2.xyzw, r2.xyzw, r4.xyzw
-                mul r2.xyzw, r1.wwww, r2.xyzw
+                mul r2.xyzw, r2.xyzw, r7.wwww
                 add r2.xyzw, r2.xyzw, r3.xyzw  // texColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
                 
-                #line 171
+                #line 159
                 nop 
-                mov r3.xyzw, v3.xyzw  // shadowPosH<0,1,2,3>
-                
-                #line 221 "LightHelper.fx"
-                div r3.xyz, r3.zxyz, r3.wwww  // shadowPosH<2:NaN:Inf,0:NaN:Inf,1:NaN:Inf>
-                
-                #line 224
-                mov r3.x, r3.x  // depth<0:NaN:Inf>
-                
-                #line 242
-                add r4.xy, r3.yzyy, l(-0.000488, -0.000488, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r1.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, l(0.000000)  // percentLit<0:[0f,1f]>
-                add r4.xy, r3.yzyy, l(0.000000, -0.000488, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,2f]>
-                add r4.xy, r3.yzyy, l(0.000488, -0.000488, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,3f]>
-                add r4.xy, r3.yzyy, l(-0.000488, 0.000000, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,4f]>
-                add r4.xy, r3.yzyy, l(0.000000, 0.000000, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,5f]>
-                add r4.xy, r3.yzyy, l(0.000488, 0.000000, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,6f]>
-                add r4.xy, r3.yzyy, l(-0.000488, 0.000488, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,7f]>
-                add r4.xy, r3.yzyy, l(0.000000, 0.000488, 0.000000, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.w, r4.xyxx, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.w  // percentLit<0:[0f,8f]>
-                add r3.yz, r3.yyzy, l(0.000000, 0.000488, 0.000488, 0.000000)
-                sample_c_lz_indexable(texture2d)(float,float,float,float) r3.x, r3.yzyy, t2.xxxx, s2, r3.x
-                add r1.w, r1.w, r3.x  // percentLit<0:[0f,9f]>
-                
-                #line 245
-                div r1.w, r1.w, l(9.000000)  // percentLit<0:[0f,1f]>
-                mov r1.w, r1.w  // CalcShadowFactor<0:[0f,1f]>
-                
-                #line 171 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
-                mov r1.w, r1.w  // shadow<0:[0f,1f]>
-                
-                #line 175
-                nop 
-                ftoi r3.x, cb0[70].x  // numLights<0>
-                mov r4.xyzw, cb1[10].xyzw  // material<8,9,10,11>
-                mov r3.yzw, cb1[8].xxyz  // material<0,1,2>
+                ftoi r1.w, cb0[70].x  // numLights<0>
+                mov r3.xyzw, cb1[10].xyzw  // material<8,9,10,11>
+                mov r4.xyz, cb1[8].xyzx  // material<0,1,2>
                 mov r5.xyz, cb1[9].xyzx  // material<4,5,6>
                 mov r6.xyz, v1.xyzx  // posW<0,1,2>
                 mov r0.xyz, r0.xyzx  // normalW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 mov r1.xyz, r1.xyzx  // toEyeW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 mov r2.xyz, r2.xyzx  // texColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                mov r1.w, r1.w  // shadow<0:[0f,1f]>
                 
                 #line 168 "LightHelper.fx"
                 mov r7.xyz, l(0,0,0,0)  // ambient<0: -0f,1: -0f,2: -0f>
                 
                 #line 173
-                mov r5.w, l(0)  // i<0: 0>
+                mov r4.w, l(0)  // i<0: 0>
                 mov r8.xyz, r7.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 mov r9.xyz, r7.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 mov r10.xyz, r7.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                mov r6.w, r5.w  // i<0>
+                mov r5.w, r4.w  // i<0>
                 loop 
-                  ilt r7.w, r6.w, r3.x
-                  breakc_z r7.w
+                  ilt r6.w, r5.w, r1.w
+                  breakc_z r6.w
                 
                 #line 178
-                  imul null, r7.w, r6.w, l(7)
-                  eq r8.w, cb0[r7.w + 5].w, l(0.000000)
-                  if_nz r8.w
+                  imul null, r6.w, r5.w, l(7)
+                  eq r7.w, cb0[r6.w + 5].w, l(0.000000)
+                  if_nz r7.w
                     nop 
-                    mov r11.xyz, r3.yzwy  // mat<0,1,2>
+                    mov r11.xyz, r4.xyzx  // mat<0,1,2>
                     mov r12.xyz, r5.xyzx  // mat<4,5,6>
-                    mov r13.xyzw, r4.xyzw  // mat<8,9,10,11>
-                    mov r14.xyz, cb0[r7.w + 0].xyzx  // light<0,1,2>
-                    mov r15.xyz, cb0[r7.w + 1].xyzx  // light<4,5,6>
-                    mov r16.xyz, cb0[r7.w + 2].xyzx  // light<8,9,10>
-                    mov r17.xyz, cb0[r7.w + 4].xyzx  // light<16,17,18>
-                    mov r18.xyz, cb0[r7.w + 6].xyzx  // light<24,25,26>
+                    mov r13.xyzw, r3.xyzw  // mat<8,9,10,11>
+                    mov r14.xyz, cb0[r6.w + 0].xyzx  // light<0,1,2>
+                    mov r15.xyz, cb0[r6.w + 1].xyzx  // light<4,5,6>
+                    mov r16.xyz, cb0[r6.w + 2].xyzx  // light<8,9,10>
+                    mov r17.xyz, cb0[r6.w + 4].xyzx  // light<16,17,18>
+                    mov r18.xyz, cb0[r6.w + 6].xyzx  // light<24,25,26>
                     mov r19.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                     mov r20.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
@@ -455,50 +407,50 @@ fxgroup
                     mul r11.xyz, r18.xxxx, r11.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 51
-                    dp3 r8.w, r17.xyzx, r19.xyzx  // diffuseFactor<0:NaN:Inf>
+                    dp3 r7.w, r17.xyzx, r19.xyzx  // diffuseFactor<0:NaN:Inf>
                 
                 #line 55
-                    lt r9.w, l(0.000000), r8.w
+                    lt r8.w, l(0.000000), r7.w
                     mov r14.xyz, -r17.xyzx
-                    dp3 r10.w, r14.xyzx, r19.xyzx
-                    add r10.w, r10.w, r10.w
-                    mov r10.w, -r10.w
-                    mul r17.xyz, r10.wwww, r19.xyzx
+                    dp3 r9.w, r14.xyzx, r19.xyzx
+                    add r9.w, r9.w, r9.w
+                    mov r9.w, -r9.w
+                    mul r17.xyz, r9.wwww, r19.xyzx
                     add r14.xyz, r14.xyzx, r17.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                    dp3 r10.w, r14.xyzx, r20.xyzx
-                    max r10.w, r10.w, l(0.000000)
-                    log r10.w, r10.w
-                    mul r10.w, r10.w, r13.w
-                    exp r10.w, r10.w  // specFactor<0:NaN:Inf>
-                    mul r12.xyz, r12.xyzx, r8.wwww
+                    dp3 r9.w, r14.xyzx, r20.xyzx
+                    max r9.w, r9.w, l(0.000000)
+                    log r9.w, r9.w
+                    mul r9.w, r9.w, r13.w
+                    exp r9.w, r9.w  // specFactor<0:NaN:Inf>
+                    mul r12.xyz, r12.xyzx, r7.wwww
                     mul r12.xyz, r15.xyzx, r12.xyzx
                     mul r12.xyz, r18.yyyy, r12.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                    mul r13.xyz, r13.xyzx, r10.wwww
+                    mul r13.xyz, r13.xyzx, r9.wwww
                     mul r13.xyz, r16.xyzx, r13.xyzx
                     mul r13.xyz, r18.zzzz, r13.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 55
-                    movc r12.xyz, r9.wwww, r12.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                    movc r13.xyz, r9.wwww, r13.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    movc r12.xyz, r8.wwww, r12.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    movc r13.xyz, r8.wwww, r13.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 179
                     mov r11.xyz, r11.xyzx  // A<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                     mov r12.xyz, r12.xyzx  // D<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                     mov r13.xyz, r13.xyzx  // S<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                   else 
-                    eq r8.w, cb0[r7.w + 5].w, l(1.000000)
-                    if_nz r8.w
+                    eq r7.w, cb0[r6.w + 5].w, l(1.000000)
+                    if_nz r7.w
                       nop 
-                      mov r14.xyz, r3.yzwy  // mat<0,1,2>
+                      mov r14.xyz, r4.xyzx  // mat<0,1,2>
                       mov r15.xyz, r5.xyzx  // mat<4,5,6>
-                      mov r16.xyzw, r4.xyzw  // mat<8,9,10,11>
-                      mov r17.xyz, cb0[r7.w + 0].xyzx  // light<0,1,2>
-                      mov r18.xyz, cb0[r7.w + 1].xyzx  // light<4,5,6>
-                      mov r19.xyz, cb0[r7.w + 2].xyzx  // light<8,9,10>
-                      mov r20.xyz, cb0[r7.w + 3].xyzx  // light<12,13,14>
-                      mov r21.xyz, cb0[r7.w + 5].xyzx  // light<20,21,22>
-                      mov r8.w, cb0[r7.w + 3].w  // light<15>
-                      mov r22.xyz, cb0[r7.w + 6].xyzx  // light<24,25,26>
+                      mov r16.xyzw, r3.xyzw  // mat<8,9,10,11>
+                      mov r17.xyz, cb0[r6.w + 0].xyzx  // light<0,1,2>
+                      mov r18.xyz, cb0[r6.w + 1].xyzx  // light<4,5,6>
+                      mov r19.xyz, cb0[r6.w + 2].xyzx  // light<8,9,10>
+                      mov r20.xyz, cb0[r6.w + 3].xyzx  // light<12,13,14>
+                      mov r21.xyz, cb0[r6.w + 5].xyzx  // light<20,21,22>
+                      mov r7.w, cb0[r6.w + 3].w  // light<15>
+                      mov r22.xyz, cb0[r6.w + 6].xyzx  // light<24,25,26>
                       mov r23.xyz, r6.xyzx  // pos<0,1,2>
                       mov r24.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                       mov r25.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
@@ -508,14 +460,14 @@ fxgroup
                       add r20.xyz, r20.xyzx, r23.xyzx  // lightVec<0:Inf,1:Inf,2:Inf>
                 
                 #line 77
-                      dp3 r9.w, r20.xyzx, r20.xyzx
-                      sqrt r23.y, r9.w  // d<0:NaN:Inf>
+                      dp3 r8.w, r20.xyzx, r20.xyzx
+                      sqrt r23.y, r8.w  // d<0:NaN:Inf>
                 
                 #line 80
-                      lt r8.w, r8.w, r23.y
+                      lt r7.w, r7.w, r23.y
                 
                 #line 84
-                      if_z r8.w
+                      if_z r7.w
                         div r20.xyz, r20.xyzx, r23.yyyy  // lightVec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 87
@@ -523,39 +475,39 @@ fxgroup
                         mul r11.xyz, r22.xxxx, r14.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 92
-                        dp3 r8.w, r20.xyzx, r24.xyzx  // diffuseFactor<0:NaN:Inf>
+                        dp3 r7.w, r20.xyzx, r24.xyzx  // diffuseFactor<0:NaN:Inf>
                 
                 #line 96
-                        lt r9.w, l(0.000000), r8.w
+                        lt r8.w, l(0.000000), r7.w
                         mov r14.xyz, -r20.xyzx
-                        dp3 r10.w, r14.xyzx, r24.xyzx
-                        add r10.w, r10.w, r10.w
-                        mov r10.w, -r10.w
-                        mul r17.xyz, r10.wwww, r24.xyzx
+                        dp3 r9.w, r14.xyzx, r24.xyzx
+                        add r9.w, r9.w, r9.w
+                        mov r9.w, -r9.w
+                        mul r17.xyz, r9.wwww, r24.xyzx
                         add r14.xyz, r14.xyzx, r17.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                        dp3 r10.w, r14.xyzx, r25.xyzx
-                        max r10.w, r10.w, l(0.000000)
-                        log r10.w, r10.w
-                        mul r10.w, r10.w, r16.w
-                        exp r10.w, r10.w  // specFactor<0:NaN:Inf>
-                        mul r14.xyz, r15.xyzx, r8.wwww
+                        dp3 r9.w, r14.xyzx, r25.xyzx
+                        max r9.w, r9.w, l(0.000000)
+                        log r9.w, r9.w
+                        mul r9.w, r9.w, r16.w
+                        exp r9.w, r9.w  // specFactor<0:NaN:Inf>
+                        mul r14.xyz, r15.xyzx, r7.wwww
                         mul r14.xyz, r18.xyzx, r14.xyzx
                         mul r14.xyz, r22.yyyy, r14.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                        mul r15.xyz, r16.xyzx, r10.wwww
+                        mul r15.xyz, r16.xyzx, r9.wwww
                         mul r15.xyz, r19.xyzx, r15.xyzx
                         mul r15.xyz, r22.zzzz, r15.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 96
-                        movc r14.xyz, r9.wwww, r14.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                        movc r15.xyz, r9.wwww, r15.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        movc r14.xyz, r8.wwww, r14.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        movc r15.xyz, r8.wwww, r15.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 106
                         mul r23.z, r23.y, r23.y
                         mov r23.x, l(1.000000)
-                        dp3 r8.w, r21.xyzx, r23.xyzx
-                        div r8.w, l(1.000000), r8.w  // att<0:NaN:Inf>
-                        mul r12.xyz, r8.wwww, r14.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                        mul r13.xyz, r8.wwww, r15.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        dp3 r7.w, r21.xyzx, r23.xyzx
+                        div r7.w, l(1.000000), r7.w  // att<0:NaN:Inf>
+                        mul r12.xyz, r7.wwww, r14.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mul r13.xyz, r7.wwww, r15.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 84
                       else 
@@ -569,21 +521,21 @@ fxgroup
                       mov r12.xyz, r12.xyzx  // D<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                       mov r13.xyz, r13.xyzx  // S<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                     else 
-                      eq r8.w, cb0[r7.w + 5].w, l(2.000000)
-                      if_nz r8.w
+                      eq r7.w, cb0[r6.w + 5].w, l(2.000000)
+                      if_nz r7.w
                         nop 
-                        mov r14.xyz, r3.yzwy  // mat<0,1,2>
+                        mov r14.xyz, r4.xyzx  // mat<0,1,2>
                         mov r15.xyz, r5.xyzx  // mat<4,5,6>
-                        mov r16.xyzw, r4.xyzw  // mat<8,9,10,11>
-                        mov r17.xyz, cb0[r7.w + 0].xyzx  // light<0,1,2>
-                        mov r18.xyz, cb0[r7.w + 1].xyzx  // light<4,5,6>
-                        mov r19.xyz, cb0[r7.w + 2].xyzx  // light<8,9,10>
-                        mov r20.xyz, cb0[r7.w + 3].xyzx  // light<12,13,14>
-                        mov r21.xyz, cb0[r7.w + 4].xyzx  // light<16,17,18>
-                        mov r22.xyz, cb0[r7.w + 5].xyzx  // light<20,21,22>
-                        mov r8.w, cb0[r7.w + 3].w  // light<15>
-                        mov r9.w, cb0[r7.w + 4].w  // light<19>
-                        mov r23.xyz, cb0[r7.w + 6].xyzx  // light<24,25,26>
+                        mov r16.xyzw, r3.xyzw  // mat<8,9,10,11>
+                        mov r17.xyz, cb0[r6.w + 0].xyzx  // light<0,1,2>
+                        mov r18.xyz, cb0[r6.w + 1].xyzx  // light<4,5,6>
+                        mov r19.xyz, cb0[r6.w + 2].xyzx  // light<8,9,10>
+                        mov r20.xyz, cb0[r6.w + 3].xyzx  // light<12,13,14>
+                        mov r21.xyz, cb0[r6.w + 4].xyzx  // light<16,17,18>
+                        mov r22.xyz, cb0[r6.w + 5].xyzx  // light<20,21,22>
+                        mov r7.w, cb0[r6.w + 3].w  // light<15>
+                        mov r8.w, cb0[r6.w + 4].w  // light<19>
+                        mov r23.xyz, cb0[r6.w + 6].xyzx  // light<24,25,26>
                         mov r24.xyz, r6.xyzx  // pos<0,1,2>
                         mov r25.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                         mov r26.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
@@ -593,14 +545,14 @@ fxgroup
                         add r20.xyz, r20.xyzx, r24.xyzx  // lightVec<0:Inf,1:Inf,2:Inf>
                 
                 #line 124
-                        dp3 r7.w, r20.xyzx, r20.xyzx
-                        sqrt r24.y, r7.w  // d<0:NaN:Inf>
+                        dp3 r6.w, r20.xyzx, r20.xyzx
+                        sqrt r24.y, r6.w  // d<0:NaN:Inf>
                 
                 #line 127
-                        lt r7.w, r8.w, r24.y
+                        lt r6.w, r7.w, r24.y
                 
                 #line 131
-                        if_z r7.w
+                        if_z r6.w
                           div r20.xyz, r20.xyzx, r24.yyyy  // lightVec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 134
@@ -608,47 +560,47 @@ fxgroup
                           mul r14.xyz, r23.xxxx, r14.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 139
-                          dp3 r7.w, r20.xyzx, r25.xyzx  // diffuseFactor<0:NaN:Inf>
+                          dp3 r6.w, r20.xyzx, r25.xyzx  // diffuseFactor<0:NaN:Inf>
                 
                 #line 143
-                          lt r8.w, l(0.000000), r7.w
+                          lt r7.w, l(0.000000), r6.w
                           mov r17.xyz, -r20.xyzx
-                          dp3 r10.w, r17.xyzx, r25.xyzx
-                          add r10.w, r10.w, r10.w
-                          mov r10.w, -r10.w
-                          mul r20.xyz, r10.wwww, r25.xyzx
+                          dp3 r9.w, r17.xyzx, r25.xyzx
+                          add r9.w, r9.w, r9.w
+                          mov r9.w, -r9.w
+                          mul r20.xyz, r9.wwww, r25.xyzx
                           add r20.xyz, r17.xyzx, r20.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                          dp3 r10.w, r20.xyzx, r26.xyzx
-                          max r10.w, r10.w, l(0.000000)
-                          log r10.w, r10.w
-                          mul r10.w, r10.w, r16.w
-                          exp r10.w, r10.w  // specFactor<0:NaN:Inf>
-                          mul r15.xyz, r15.xyzx, r7.wwww
+                          dp3 r9.w, r20.xyzx, r26.xyzx
+                          max r9.w, r9.w, l(0.000000)
+                          log r9.w, r9.w
+                          mul r9.w, r9.w, r16.w
+                          exp r9.w, r9.w  // specFactor<0:NaN:Inf>
+                          mul r15.xyz, r15.xyzx, r6.wwww
                           mul r15.xyz, r18.xyzx, r15.xyzx
                           mul r15.xyz, r23.yyyy, r15.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                          mul r16.xyz, r16.xyzx, r10.wwww
+                          mul r16.xyz, r16.xyzx, r9.wwww
                           mul r16.xyz, r19.xyzx, r16.xyzx
                           mul r16.xyz, r23.zzzz, r16.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 143
-                          movc r15.xyz, r8.wwww, r15.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                          movc r16.xyz, r8.wwww, r16.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          movc r15.xyz, r7.wwww, r15.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          movc r16.xyz, r7.wwww, r16.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 153
-                          dp3 r7.w, r17.xyzx, r21.xyzx
-                          max r7.w, r7.w, l(0.000000)
-                          log r7.w, r7.w
-                          mul r7.w, r7.w, r9.w
-                          exp r7.w, r7.w  // spot<0:NaN:Inf>
+                          dp3 r6.w, r17.xyzx, r21.xyzx
+                          max r6.w, r6.w, l(0.000000)
+                          log r6.w, r6.w
+                          mul r6.w, r6.w, r8.w
+                          exp r6.w, r6.w  // spot<0:NaN:Inf>
                 
                 #line 156
                           mul r24.z, r24.y, r24.y
                           mov r24.x, l(1.000000)
-                          dp3 r8.w, r22.xyzx, r24.xyzx
-                          div r8.w, r7.w, r8.w  // att<0:NaN:Inf>
-                          mul r11.xyz, r7.wwww, r14.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                          mul r12.xyz, r8.wwww, r15.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                          mul r13.xyz, r8.wwww, r16.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          dp3 r7.w, r22.xyzx, r24.xyzx
+                          div r7.w, r6.w, r7.w  // att<0:NaN:Inf>
+                          mul r11.xyz, r6.wwww, r14.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          mul r12.xyz, r7.wwww, r15.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          mul r13.xyz, r7.wwww, r16.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 131
                         else 
@@ -667,56 +619,42 @@ fxgroup
                 
                 #line 185
                   add r8.xyz, r8.xyzx, r11.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                  mul r11.xyz, r1.wwww, r12.xyzx
+                  mul r11.xyz, r12.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
                   add r9.xyz, r9.xyzx, r11.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                  mul r11.xyz, r1.wwww, r13.xyzx
+                  mul r11.xyz, r13.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
                   add r10.xyz, r10.xyzx, r11.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
                 #line 173
-                  iadd r6.w, r6.w, l(1)  // i<0>
+                  iadd r5.w, r5.w, l(1)  // i<0>
                 endloop 
                 
                 #line 190
                 add r0.xyz, r8.xyzx, r9.xyzx
                 mul r0.xyz, r0.xyzx, r2.xyzx
-                add r1.xyz, r10.xyzx, r0.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                add r0.xyz, r10.xyzx, r0.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
-                #line 175 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
-                mov r1.xyz, r1.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                #line 159 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Terrain.fx"
+                mov r0.xyz, r0.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
-                #line 178
-                mov r0.xy, -cb0[74].xyxx
-                add r0.xy, r0.xyxx, v1.xzxx  // vectorDist<0:Inf,1:Inf>
-                mul r0.x, r0.x, r0.x
-                mul r0.y, r0.y, r0.y
-                add r0.x, r0.y, r0.x
-                sqrt r0.x, r0.x  // dist<0:NaN:Inf>
-                lt r0.x, r0.x, cb0[74].z
-                if_nz r0.x
-                  add r1.w, r1.z, l(0.400000)  // litColor<2:NaN:Inf>
-                else 
-                  mov r1.w, r1.z  // litColor<2:NaN:Inf>
-                endif 
+                #line 162
+                mov r1.x, -cb0[71].x
+                add r0.w, r0.w, r1.x
+                div r0.w, r0.w, cb0[71].y
+                max r0.w, r0.w, l(0.000000)
+                min r0.w, r0.w, l(1.000000)  // fogLerp<0:[0f,1f]>
                 
-                #line 184
-                mov r0.x, -cb0[71].x
-                add r0.x, r0.x, r0.w
-                div r0.x, r0.x, cb0[71].y
-                max r0.x, r0.x, l(0.000000)
-                min r0.x, r0.x, l(1.000000)  // fogLerp<0:[0f,1f]>
+                #line 165
+                mov r1.xyz, -r0.xyzx
+                add r1.xyz, r1.xyzx, cb0[72].xyzx
+                mul r1.xyz, r0.wwww, r1.xyzx
+                add r0.xyz, r0.xyzx, r1.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 
-                #line 187
-                mov r0.yzw, -r1.xxyw
-                add r0.yzw, r0.yyzw, cb0[72].xxyz
-                mul r0.xyz, r0.yzwy, r0.xxxx
-                add r0.xyz, r0.xyzx, r1.xywx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
-                
-                #line 190
+                #line 168
                 mul r0.w, r2.w, cb1[9].w  // litColor<3:NaN:Inf>
                 mov o0.xyz, r0.xyzx  // PS<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
                 mov o0.w, r0.w  // PS<3:NaN:Inf>
                 ret 
-                // Approximately 325 instruction slots used
+                // Approximately 288 instruction slots used
                             
             };
         }

@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include "Light.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "xnacollision.h"
 #include "FW1FontWrapper.h"
 

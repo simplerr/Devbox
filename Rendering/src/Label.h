@@ -1,6 +1,6 @@
 #pragma once
 #include "BasicControl.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 
 class LuaWrapper;
 

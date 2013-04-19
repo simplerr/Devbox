@@ -3,7 +3,7 @@
 #include <map>
 #include <boost\function.hpp>
 #include <boost\bind.hpp>
-#include "d3dUtil.h"
+#include "Utility.h"
 
 using namespace std;
 
@@ -22,7 +22,7 @@ namespace GLib {
 	typedef std::vector<Object3D*> ObjectList;
 
 	//! Contains all objects, lights and the terrain.
-	class World
+	class GLIB_API World
 	{
 	public:
 		World();

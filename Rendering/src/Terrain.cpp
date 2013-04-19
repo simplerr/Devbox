@@ -44,7 +44,7 @@ namespace GLib
 		layerFilenames.push_back(mInfo.LayerMap2);
 		layerFilenames.push_back(mInfo.LayerMap3);
 		layerFilenames.push_back(mInfo.LayerMap4);
-		mLayerTextureArraySRV = d3dHelper::CreateTexture2DArraySRV(device, context, layerFilenames);
+		mLayerTextureArraySRV = CreateTexture2DArraySRV(device, context, layerFilenames);
 	}
 	
 	//! Draw the terrain with texture blending and shadowmapping.

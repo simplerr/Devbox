@@ -1,5 +1,5 @@
 #include "BlurFilter.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Runnable.h"
 #include "Graphics.h"
 #include "Effects.h"

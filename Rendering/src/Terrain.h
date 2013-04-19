@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Vertex.h"
 
 //! Graphics Library namespace.

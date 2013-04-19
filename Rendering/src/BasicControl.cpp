@@ -1,6 +1,6 @@
 #include "BasicControl.h"
 #include "Graphics.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 
 BasicControl::BasicControl(float x, float y, string name)
 {

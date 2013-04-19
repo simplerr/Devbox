@@ -4,7 +4,7 @@
 #include <assimp\Importer.hpp>
 #include <assimp\mesh.h>
 #include <assimp\scene.h>
-#include "d3dUtil.h"
+#include "Utility.h"
 using namespace std;
 
 //! Graphics Library namespace.

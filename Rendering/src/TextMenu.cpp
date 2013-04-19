@@ -2,7 +2,7 @@
 #include "Label.h"
 #include "Graphics.h"
 #include "LuaWrapper.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Sound.h"
 
 TextMenu::TextMenu(float x, float y, string name)

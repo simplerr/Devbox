@@ -13,10 +13,10 @@ LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	// Don't start processing messages until the application has been created.
-	/*if(GlobalApp != NULL )
-		return GlobalApp->MsgProc(hwnd, msg, wParam, lParam);
+	if(GlobalApp::GetGame() != NULL )
+		return GlobalApp::GetGame()->MsgProc(hwnd, msg, wParam, lParam);
 	else
-		return DefWindowProc(hwnd, msg, wParam, lParam);*/
+		return DefWindowProc(hwnd, msg, wParam, lParam);
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }

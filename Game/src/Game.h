@@ -1,6 +1,6 @@
 #pragma once
 #include "Runnable.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 
 // Forward declarations.
 #pragma region Forward declarations.
@@ -8,7 +8,6 @@ namespace GLib {
 	class Light;
 	class RenderTarget;
 	class Primitive;
-	struct Texture2D;
 	class ShadowMap;
 	class ModelImporter;
 	class Model;
@@ -16,6 +15,7 @@ namespace GLib {
 	class World;
 	class StaticObject;
 	class AnimatedObject;
+	struct Texture2D;
 }
 
 class ControlManager;
@@ -40,6 +40,5 @@ public:
 	LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 private:
 	bool mDrawDebug;
-	GLib::Texture2D* mTexture;
-	XMFLOAT2 mPosition;
+	GLib::World* mWorld;
 };

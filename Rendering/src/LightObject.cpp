@@ -46,7 +46,10 @@ namespace GLib
 	//! Not used.
 	void LightObject::Draw(GLib::Graphics* pGraphics)
 	{
-
+		/*XNA::AxisAlignedBox box;
+		box.Center = GetPosition();
+		box.Extents = XMFLOAT3(2, 2, 2);
+		pGraphics->DrawBoundingBox(&box, GetWorldMatrix(), Material(XMFLOAT4(0, 255, 0, 0)));*/
 	}
 
 	//! Returns true if the ray hits lights bounding box.

@@ -2,7 +2,7 @@
 #include "Effects.h"
 #include "Runnable.h"
 #include "D3DCore.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "Light.h"
 #include "Graphics.h"
 

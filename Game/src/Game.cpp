@@ -11,6 +11,10 @@
 #include "Effects.h"
 #include "CameraFPS.h"
 #include "D3DCore.h"
+#include "Terrain.h"
+#include "StaticObject.h"
+#include "ShadowMap.h"
+#include "GlibStd.h"
 
 using namespace GLib;
 
@@ -29,6 +33,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 
 	GlobalApp::SetRunnable(&game);
 
+	Logger::Init("log.txt");
+
+	GLIB_INFO("hehe");
+	GLIB_FATAL("Game", "WinMain");
+
 	// Init the app.
 	auto i = GlobalApp::GetGame();
 	GlobalApp::GetGame()->Init();
@@ -46,6 +55,7 @@ Game::Game(HINSTANCE hInstance, string caption, int width, int height)
 {
 	// Cap the fps to 100.
 	//SetFpsCap(99.0f);
+	Logger::Destroy();
 }
 	
 Game::~Game()
@@ -60,6 +70,7 @@ void Game::Init()
 
 	// Add a camera.
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
+	camera->SetMovementSpeed(0.2f);
 	GetGraphics()->SetCamera(camera);
 
 	// Set the fog color.
@@ -67,25 +78,31 @@ void Game::Init()
 
 	mDrawDebug = false;
 
-	mTexture = GetGraphics()->LoadTexture("swag.bmp");
-	mPosition = XMFLOAT2(800, 800);
+	mWorld = new World();
+	mWorld->Init(GetGraphics());
+
+	// Connect the graphics light list.
+	GLib::GlobalApp::GetGraphics()->SetLightList(mWorld->GetLights());
+
+	GLib::StaticObject* object = nullptr;
+	
+	for(int i = 0; i < 10; i++)
+	{
+		for(int y = 0; y < 10; y++)
+		{
+			object = new GLib::StaticObject(GetGraphics()->GetModelImporter(), "data/models/misc/Crate.obj");
+			object->SetPosition(XMFLOAT3(i * 20, 10, y * 20));
+			object->SetScale(XMFLOAT3(3, 3, 3));
+			mWorld->AddObject(object);
+		}
+	}
 }
 
 void Game::Update(GLib::Input* pInput, float dt)
 {
 	GetGraphics()->Update(pInput, dt);
 
-	if(pInput->KeyDown('A'))
-		mPosition.x -= 1.0f;
-	else if(pInput->KeyDown('D'))
-		mPosition.x += 1.0f;
-
-	if(pInput->KeyPressed(VK_SPACE))
-	{
-		char buffer[244];
-		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", 0.0f, 0.0f, GetCurrentFps());
-		OutputDebugString(buffer);
-	}
+	mWorld->Update(dt);
 
 	if(pInput->KeyPressed(VK_F1))
 		mDrawDebug = !mDrawDebug;
@@ -103,9 +120,9 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	// Clear the render target and depth/stencil.
 	pGraphics->ClearScene();
 
-	//pGraphics->DrawBillboards();
+	mWorld->Draw(pGraphics);
 
-	pGraphics->DrawScreenQuad(mTexture, mPosition.x, 800, 400, 400);
+	pGraphics->DrawBillboards();
 
 	if(mDrawDebug)
 	{
@@ -118,9 +135,9 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	pGraphics->Present();
 
 	// Unbind the SRVs from the pipeline so they can be used as DSVs instead.
-	//ID3D11ShaderResourceView *const nullSRV[4] = {NULL, NULL, NULL, NULL};
-	//pGraphics->GetContext()->PSSetShaderResources(0, 4, nullSRV);
-	//Effects::GetBasicFX()->Apply(GLib::GlobalApp::GetD3DContext());
+	ID3D11ShaderResourceView *const nullSRV[4] = {NULL, NULL, NULL, NULL};
+	pGraphics->GetContext()->PSSetShaderResources(0, 4, nullSRV);
+	Effects::GetBasicFX()->Apply(GLib::GlobalApp::GetD3DContext());
 }
 
 //! Called when the window gets resized.

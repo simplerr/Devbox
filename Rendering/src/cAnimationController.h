@@ -4,7 +4,7 @@
 
 #ifndef AV_SCENEANIMATOR_H
 #define AV_SCENEANIMATOR_H
-#include "d3dUtil.h"
+#include "Utility.h"
 #include <map>
 #include <fstream>
 #include <tuple>

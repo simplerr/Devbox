@@ -3,7 +3,7 @@
 #include "Graphics.h"
 #include "Camera.h"
 #include "D3DCore.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 
 //! Graphics Library namespace.
 namespace GLib

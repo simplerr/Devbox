@@ -9,7 +9,7 @@ namespace GLib {
 	//	Represents a static object. 
 	//	Can be loaded from a file or the primitive factory.
 	//!
-	class StaticObject : public Object3D
+	class GLIB_API StaticObject : public Object3D
 	{
 	public:
 		StaticObject(ModelImporter* importer, string filename);

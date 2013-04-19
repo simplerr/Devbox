@@ -1,6 +1,6 @@
 #include "Label.h"
 #include "Graphics.h"
-#include "d3dUtil.h"
+#include "Utility.h"
 #include "LuaWrapper.h"
 #include "UiCoordinate.h"
 

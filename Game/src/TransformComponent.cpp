@@ -6,13 +6,35 @@ const char* TransformComponent::g_Name = "TransformComponent";
 TransformComponent::TransformComponent()
 {
 	mPosition = XMFLOAT3(0.0f, 40.0f, 0.0f);
-	mRotation = XMFLOAT3(1.0f, 0.0f, 0.4f);
+	mRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	mScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 }
 
-void TransformComponent::Init()
+void TransformComponent::Init(LuaPlus::LuaObject initData)
 {
+	// Position.
+	if(!initData["pos_x"].IsNil())
+		mPosition.x = initData["pos_x"].ToNumber();
+	if(!initData["pos_y"].IsNil())
+		mPosition.y  = initData["pos_y"].ToNumber();
+	if(!initData["pos_z"].IsNil())
+		mPosition.z  = initData["pos_z"].ToNumber();
 
+	// Rotation.
+	if(!initData["rot_x"].IsNil())
+		mRotation.x = initData["rot_x"].ToNumber();
+	if(!initData["rot_y"].IsNil())
+		mRotation.y = initData["rot_y"].ToNumber();
+	if(!initData["rot_z"].IsNil())
+		mRotation.z = initData["rot_z"].ToNumber();
+
+	// Scale.
+	if(!initData["scale_x"].IsNil())
+		mScale.x = initData["scale_x"].ToNumber();
+	if(!initData["scale_y"].IsNil())
+		mScale.y = initData["scale_y"].ToNumber();
+	if(!initData["scale_z"].IsNil())
+		mScale.z = initData["scale_z"].ToNumber();
 }
 
 void TransformComponent::PostInit()

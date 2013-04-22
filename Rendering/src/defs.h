@@ -6,7 +6,7 @@
 #pragma comment(lib, "../debug/Effects11_d.lib")
 #pragma comment(lib, "../debug/FW1FontWrapper.lib")
 #pragma comment(lib, "../debug/gwen_static_d.lib")
-#pragma comment(lib, "../debug/toluapp_d.lib")
+#pragma comment(lib, "../debug/luaplus51-1201_debug.lib")
 #else
 #pragma comment(lib, "../release/assimp.lib")
 #pragma comment(lib, "../release/Effects11.lib")

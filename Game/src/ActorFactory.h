@@ -2,6 +2,7 @@
 #include <string>
 #include "GenericObjectFactory.h"
 #include "typedefs.h"
+#include "LuaPlus.h"
 
 using namespace std;
 
@@ -15,16 +16,15 @@ class Component;
 class ActorFactory
 {
 public:
-	ActorFactory(string actorsLuaFile);
+	ActorFactory();
 	virtual ~ActorFactory();
 
 	StrongActorPtr CreateActor(string actorName);
-	StrongComponentPtr CreateComponent(string componentName);
+	StrongComponentPtr CreateComponent(string componentName, LuaPlus::LuaObject data);
 	void AddComponentToActor(StrongActorPtr pActor, string componentName);
 private:
 	ActorId GetNextActorId();
 
-	string	mActorsLuaFile;
 	ActorId mLastActorId;
 protected:
 	GenericObjectFactory<Component, string> mComponentFactory;

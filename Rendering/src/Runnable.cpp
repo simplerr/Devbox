@@ -299,6 +299,11 @@ void Runnable::SetUseWindowBorder(bool use)
 	mUseBorder = use;
 }
 
+void Runnable::SetWindowPosition(int left_x, int top_y)
+{
+	SetWindowPos(mhMainWindow, HWND_TOP, left_x, top_y, GlobalApp::GetClientWidth(), GlobalApp::GetClientHeight(), SWP_SHOWWINDOW);
+}
+
 void Runnable::ResizeWindow(float width, float height)
 {
 	mWindowedWidth = width;

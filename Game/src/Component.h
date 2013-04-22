@@ -1,5 +1,7 @@
 #pragma once
+
 #include "typedefs.h"
+#include "LuaPlus.h"
 
 namespace GLib {
 	class Graphics;
@@ -12,7 +14,7 @@ public:
 	virtual ~Component();
 
 	// Override these.
-	virtual void Init() = 0;
+	virtual void Init(LuaPlus::LuaObject initData) = 0;
 	virtual const char* GetName() = 0;
 	virtual void PostInit() {};
 	virtual void Update(float dt) {};

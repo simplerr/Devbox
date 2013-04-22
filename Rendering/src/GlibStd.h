@@ -17,6 +17,7 @@
 #include <string>
 #include <assert.h>
 #include <Windows.h>
+#include <iostream>
 
 // DirectX includes.
 #include <D3D11.h>
@@ -37,6 +38,7 @@ namespace GLib
 	class Graphics;
 	class Camera;
 	class Runnable;
+	class Input;
 
 	/******************************************************************************************//**
 	* @brief A static class that wraps the global Runnable* instance.  
@@ -51,6 +53,7 @@ namespace GLib
 		static Graphics*				GetGraphics();
 		static Camera*					GetCamera();
 		static Runnable*				GetGame();
+		static Input*					GetInput();
 		static HINSTANCE				GetAppInstance();
 		static HWND						GetWindowHandler();
 		static int						GetClientWidth();

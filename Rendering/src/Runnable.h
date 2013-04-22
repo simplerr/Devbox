@@ -47,6 +47,7 @@ namespace GLib
 		void SetFpsCap(float cap);
 		void SetFullscreen(bool fullscreen);
 		void SetUseWindowBorder(bool use);
+		void SetWindowPosition(int left_x, int top_y);
 	
 		HINSTANCE	GetInstance();
 		HWND		GetHwnd();	

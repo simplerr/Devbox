@@ -7,7 +7,7 @@ class BoundingBoxComponent : public Component
 public:
 	BoundingBoxComponent();
 
-	void Init();
+	void Init(LuaPlus::LuaObject initData);
 	void Draw(GLib::Graphics* pGraphics);
 	
 	void SetExtends(float extends);

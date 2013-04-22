@@ -17,6 +17,7 @@ public:
 	void Draw(GLib::Graphics* pGraphics);
 
 	void AddActor(StrongActorPtr pActor);
+	void Clear();
 private:
 	ActorMap mActors;
 };

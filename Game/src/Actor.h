@@ -2,6 +2,7 @@
 #include <memory>
 #include <map>
 #include "typedefs.h"
+#include "LuaPlus.h"
 using namespace std;
 
 class Component;
@@ -18,7 +19,7 @@ public:
 	explicit Actor(ActorId id);
 	~Actor();
 
-	void Init();
+	void Init(LuaPlus::LuaObject luaObject, string actorName);
 	void PostInit(void);
 	void Destroy(void);
 	void Update(float dt);
@@ -27,16 +28,21 @@ public:
 
 	const ActorComponents* GetComponents();
 	ActorId GetId();
+	string GetName();
 
 	template <class ComponentType>
 	weak_ptr<ComponentType> GetComponent(ComponentId id);
 
 	template <class ComponentType>
 	weak_ptr<ComponentType> GetComponent(const char *name);
+
 private:
 	ActorComponents mComponents;
 	ActorType mType;
 	ActorId mId;
+	string mName;
+private:
+	// Script objects, should probably not be here
 };
 
 /******************************************************************************************//**

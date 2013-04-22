@@ -38,6 +38,10 @@ public:
 	void ChangeState(GameState* pGameState);
 
 	LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	void InitWorld();
+	void ExecuteLuaScripts();
+	void ReloadActors();
 private:
 	bool mDrawDebug;
 	GLib::World* mWorld;

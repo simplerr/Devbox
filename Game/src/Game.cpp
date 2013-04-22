@@ -20,6 +20,9 @@
 #include "TransformComponent.h"
 #include "BoundingBoxComponent.h"
 #include "ActorFactory.h"
+#include "LuaManager.h"
+#include "DebugConsole.h"
+#include "ScriptComponent.h"
 
 using namespace GLib;
 
@@ -39,16 +42,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 	GlobalApp::SetRunnable(&game);
 
 	Logger::Init("log.txt");
+	DebugConsole::Init(20, 20, 700, 320);
 
-	GLIB_INFO("hehe");
+	if (!LuaManager::Create())
+		GLIB_ERROR("Failed to initialize Lua");
 
 	// Init the app.
-	auto i = GlobalApp::GetGame();
 	GlobalApp::GetGame()->Init();
-
-	//GlobalApp::GetGame()->ResizeWindow(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-	
-	auto core = GlobalApp::GetWindowHandler();
 
 	// Run the app.
 	return GlobalApp::GetGame()->Run();
@@ -59,12 +59,12 @@ Game::Game(HINSTANCE hInstance, string caption, int width, int height)
 {
 	// Cap the fps to 100.
 	//SetFpsCap(99.0f);
-	Logger::Destroy();
+	mDrawDebug = false;
 }
 	
 Game::~Game()
 {
-
+	Logger::Destroy();
 }
 
 void Game::Init()
@@ -72,25 +72,51 @@ void Game::Init()
 	// Important to run Systems Init() function.
 	Runnable::Init();
 
+	GlobalApp::GetGame()->SetWindowPosition(20, 350);
+
+	InitWorld();
+
+	// Testing actor stuff.
+	mActorManager = new ActorManager;
+	mActorFactory = new ActorFactory;
+
+	ReloadActors();
+}
+
+void Game::ExecuteLuaScripts()
+{
+	// Execute all the different lua files of interest here.
+	LuaManager::Get()->ExecuteFile("data/lua/default-actor.lua");
+}
+
+void Game::ReloadActors()
+{
+	// Clear the actor manager.
+	mActorManager->Clear();
+
+	ExecuteLuaScripts();
+	//ScriptComponent::RegisterScriptFunctions();
+
+	auto actor = mActorFactory->CreateActor("default_actor");
+	auto actor2 = mActorFactory->CreateActor("default_actor");
+
+	auto transform = MakeStrongPtr(actor2->GetComponent<TransformComponent>(TransformComponent::g_Name));
+	transform->SetPosition(XMFLOAT3(-40, 30, 0));
+
+	mActorManager->AddActor(actor);
+	mActorManager->AddActor(actor2);
+}
+
+void Game::InitWorld()
+{
 	// Add a camera.
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
 	camera->SetMovementSpeed(0.2f);
+	camera->SetRotateButton(VK_MBUTTON);
 	GetGraphics()->SetCamera(camera);
 
 	// Set the fog color.
 	GetGraphics()->SetFogColor(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f));
-
-	mDrawDebug = false;
-
-	mActorManager = new ActorManager;
-	mActorFactory = new ActorFactory("actors.lua");
-
-	auto actor = mActorFactory->CreateActor("TestActor");
-
-	mActorFactory->AddComponentToActor(actor, TransformComponent::g_Name);
-	mActorFactory->AddComponentToActor(actor, BoundingBoxComponent::g_Name);
-	
-	mActorManager->AddActor(actor);
 
 	mWorld = new World();
 	mWorld->Init(GetGraphics());
@@ -102,6 +128,9 @@ void Game::Init()
 void Game::Update(GLib::Input* pInput, float dt)
 {
 	GetGraphics()->Update(pInput, dt);
+
+	if(pInput->KeyPressed('R'))
+		ReloadActors();
 
 	mWorld->Update(dt);
 	mActorManager->Update(dt);

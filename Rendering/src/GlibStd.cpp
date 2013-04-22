@@ -75,5 +75,10 @@ namespace GLib
 	{
 		return mRunnable->GetClientHeight();
 	}
+
+	Input* GlobalApp::GetInput()
+	{
+		return mRunnable->GetInput();
+	}
 }
 

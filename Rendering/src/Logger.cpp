@@ -1,6 +1,7 @@
 #include "Logger.h"
 #include <stdio.h>
 #include <windows.h>
+#include <iostream>
 
 //! Global logger instance, used by the logger macros through the C interface.
 static LogManager* gGlobalLogger = nullptr;
@@ -86,7 +87,7 @@ void LogManager::OutputToDebugLogs(const string& output)
 	}
 	if(mFlags & LOGFLAG_WRITE_TO_DEBUGGER)
 	{
-		OutputDebugString(output.c_str());
+		cout << output.c_str();
 	}
 }
 

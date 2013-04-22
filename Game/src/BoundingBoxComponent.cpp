@@ -10,9 +10,10 @@ BoundingBoxComponent::BoundingBoxComponent()
 	SetExtends(1.0f);
 }
 
-void BoundingBoxComponent::Init()
+void BoundingBoxComponent::Init(LuaPlus::LuaObject initData)
 {
-
+	if(!initData["extents"].IsNil())
+		mExtends = initData["extents"].ToNumber();
 }
 
 void BoundingBoxComponent::Draw(GLib::Graphics* pGraphics)

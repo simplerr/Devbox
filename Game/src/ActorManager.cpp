@@ -3,10 +3,7 @@
 
 ActorManager::~ActorManager()
 {
-	// Destroy all actors.
-	for (auto it = mActors.begin(); it != mActors.end(); ++it)
-		it->second->Destroy();
-	mActors.clear();
+	Clear();
 }
 
 void ActorManager::Update(float dt)
@@ -30,4 +27,13 @@ void ActorManager::Draw(GLib::Graphics* pGraphics)
 void ActorManager::AddActor(StrongActorPtr pActor)
 {
 	mActors.insert(std::make_pair(pActor->GetId(), pActor));
+}
+
+void ActorManager::Clear()
+{
+	// Destroy all actors.
+	for (auto it = mActors.begin(); it != mActors.end(); ++it)
+		it->second->Destroy();
+
+	mActors.clear();
 }

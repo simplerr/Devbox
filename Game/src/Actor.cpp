@@ -1,6 +1,7 @@
 #include "Actor.h"
 #include "GlibStd.h"
 #include "Component.h"
+#include "LuaManager.h"
 
 Actor::Actor(ActorId id)
 {
@@ -16,9 +17,10 @@ Actor::~Actor()
 	GLIB_ASSERT(mComponents.empty());  
 }
 
-void Actor::Init()
+void Actor::Init(LuaPlus::LuaObject luaObject, string actorName)
 {
-	//mType = type;
+	//LuaManager::Get()->PrintTable(luaObject);
+	mName = actorName;
 }
 
 void Actor::PostInit(void)
@@ -61,4 +63,9 @@ const Actor::ActorComponents* Actor::GetComponents()
 ActorId Actor::GetId()
 {
 	return mId;
+}
+
+string Actor::GetName()
+{
+	return mName;
 }

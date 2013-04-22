@@ -8,7 +8,7 @@ class TransformComponent : public Component
 public:
 	TransformComponent();
 
-	void Init();
+	void Init(LuaPlus::LuaObject initData);
 	void PostInit();
 	void Update(float dt);
 

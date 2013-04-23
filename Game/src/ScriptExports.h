@@ -18,6 +18,17 @@ public:
 	static void DrawString(const char* text, int x, int y, int size);
 	static void DrawTexture(const char* texture, int x, int y, int width, int height);
 	static void DrawAABB(float x, float y, float z, float extents, float alpha);
+
+	// Camera exports.
+	static void SetCameraPosition(float x, float y, float z);
+	static void SetCameraDirection(float x, float y, float z);
+	static void SetCameraTarget(float x, float y, float z);
+	
+
+	static LuaPlus::LuaObject GetCameraPosition();
+	static LuaPlus::LuaObject GetCameraDirection();
+	static LuaPlus::LuaObject GetCameraTarget();
+	
 private:
 	static int MapToKey(std::string str);
 };

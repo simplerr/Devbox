@@ -49,11 +49,13 @@ StrongActorPtr ActorFactory::CreateActor(string actorName)
 		GLIB_LOG("ActorFactory", string("added ") + key.ToString() + " to " + actorName);
 
 		StrongComponentPtr component = CreateComponent(key.ToString(), componentData);
+		pActor->AddComponent(component);
 		component->SetOwner(pActor);
 		component->Init(componentData);
-		pActor->AddComponent(component);
-		component->PostInit();
 	}
+
+	// Loops over and PostInit() all components.
+	pActor->PostInit();
 
 	return pActor;
 }

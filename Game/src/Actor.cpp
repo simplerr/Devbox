@@ -25,7 +25,10 @@ void Actor::Init(LuaPlus::LuaObject luaObject, string actorName)
 
 void Actor::PostInit(void)
 {
-
+	for(ActorComponents::iterator iter = mComponents.begin(); iter != mComponents.end(); iter++)
+	{
+		iter->second->PostInit();
+	}
 }
 
 void Actor::Destroy(void)

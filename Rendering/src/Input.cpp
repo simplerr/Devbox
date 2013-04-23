@@ -55,7 +55,8 @@ void Input::Update(float dt)
 
 	POINT point;
 	GetCursorPos(&point);
-		SetMousePosition(XMFLOAT3(point.x, point.y, 0));
+	ScreenToClient(GLib::GlobalApp::GetWindowHandler(), &point);
+	SetMousePosition(XMFLOAT3(point.x, point.y, 0));
 }
 
 //! Draws debug information.

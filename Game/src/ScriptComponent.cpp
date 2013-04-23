@@ -44,13 +44,10 @@ void ScriptComponent::PostInit()
 
 void ScriptComponent::Update(float dt)
 {
-	if(GLib::GlobalApp::GetInput()->KeyPressed('U'))
+	if(mLuaOnUpdate.IsFunction())
 	{
-		if(mLuaOnUpdate.IsFunction())
-		{
-			LuaPlus::LuaFunction<void> on_update(mLuaOnUpdate);
-			on_update(mLuaObject);
-		}
+		LuaPlus::LuaFunction<void> on_update(mLuaOnUpdate);
+		on_update(mLuaObject, dt);
 	}
 }
 
@@ -84,7 +81,7 @@ void ScriptComponent::RegisterScriptFunctions()
 {
 	// Expand to the metatable,
 	// the metatable already exists so we grab it 
-	// and registers the C++ functions on it
+	// and registers the C++ functions on it.
 	string actorName = mOwner->GetName();
 	LuaPlus::LuaObject metaTableObj = LuaManager::Get()->GetGlobalVars()[actorName.c_str()];
 	
@@ -117,9 +114,9 @@ void ScriptComponent::SetPosition(float x, float y, float z)
 	if(transform)
 	{
 		transform->SetPosition(XMFLOAT3(x, y, z));
-		char buffer[128];
+		/*char buffer[128];
 		sprintf(buffer, "SetPosition(%.2f, %.2f, %.2f) on actor id %i", x, y, z, GetActorId());
-		GLIB_LOG("Lua", buffer);
+		GLIB_LOG("Lua", buffer);*/
 	}
 	else
 	{
@@ -134,9 +131,9 @@ void ScriptComponent::SetRotation(float x, float y, float z)
 	if(transform)
 	{
 		transform->SetRotation(XMFLOAT3(x, y, z));
-		char buffer[128];
+		/*char buffer[128];
 		sprintf(buffer, "SetRotation(%.2f, %.2f, %.2f) on actor id %i", x, y, z, GetActorId());
-		GLIB_LOG("Lua", buffer);
+		GLIB_LOG("Lua", buffer);*/
 	}
 	else
 	{
@@ -151,9 +148,9 @@ void ScriptComponent::SetScale(float x, float y, float z)
 	if(transform)
 	{
 		transform->SetScale(XMFLOAT3(x, y, z));
-		char buffer[128];
+		/*char buffer[128];
 		sprintf(buffer, "SetScale(%.2f, %.2f, %.2f) on actor id %i", x, y, z, GetActorId());
-		GLIB_LOG("Lua", buffer);
+		GLIB_LOG("Lua", buffer);*/
 	}
 	else
 	{

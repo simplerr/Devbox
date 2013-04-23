@@ -23,6 +23,7 @@
 #include "LuaManager.h"
 #include "DebugConsole.h"
 #include "ScriptComponent.h"
+#include "ScriptExports.h"
 
 using namespace GLib;
 
@@ -95,16 +96,14 @@ void Game::ReloadActors()
 	mActorManager->Clear();
 
 	ExecuteLuaScripts();
-	//ScriptComponent::RegisterScriptFunctions();
 
-	auto actor = mActorFactory->CreateActor("default_actor");
-	auto actor2 = mActorFactory->CreateActor("default_actor");
+	ScriptExports::Register();
 
-	auto transform = MakeStrongPtr(actor2->GetComponent<TransformComponent>(TransformComponent::g_Name));
-	transform->SetPosition(XMFLOAT3(-40, 30, 0));
-
-	mActorManager->AddActor(actor);
-	mActorManager->AddActor(actor2);
+	for(int i = 0; i < 20; i++)
+	{
+		auto actor = mActorFactory->CreateActor("default_actor");
+		mActorManager->AddActor(actor);
+	}
 }
 
 void Game::InitWorld()

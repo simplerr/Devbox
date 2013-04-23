@@ -273,7 +273,7 @@ StaticModel* ModelImporter::LoadStaticModel(string filename)
 				mesh->SetNormalMap(GlobalApp::GetGraphics()->LoadTexture(nmap.C_Str()));
 
 			// [NOTE] The material is set to white.
-			mesh->SetMaterial(Material(Colors::White)); //Material(ambient, diffuse, specular)
+			mesh->SetMaterial(Material(Colors::White)); // Was  before [NOTE]
 
 			model->SetFilename(filename);
 

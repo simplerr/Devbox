@@ -29,7 +29,7 @@ namespace GLib
 	//	Contains a list of skinned meshes representing an animated model,
 	//	and a SceneAnimator that calculates the bone transforms.
 	//!
-	class SkinnedModel
+	class GLIB_API SkinnedModel
 	{
 	public:
 		SkinnedModel();
@@ -47,12 +47,14 @@ namespace GLib
 		void SetAnimation(int index);
 		void SetElapsedTime(float elapsedTime);
 		void SetMeshMaterial(int meshId, Material material);
+		void SetMaterial(Material material);
 		void AdjustAnimationSpeedBy(float percent);
 
 		SkinnedMeshList* GetMeshList();
 		vector<XMFLOAT4X4> GetFinalTransforms();
 		XNA::AxisAlignedBox GetBoundingBox();
 		string GetFilename();
+		Material GetMaterial();
 		void CalculateAABB();
 		int GetCurrentAnimation();
 		float GetAnimationSpeed();

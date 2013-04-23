@@ -13,7 +13,7 @@ namespace GLib
 	typedef vector<StaticMesh*> MeshList;
 
 	//! Contains a list of static meshes representing a model.
-	class StaticModel
+	class GLIB_API StaticModel
 	{
 	public:
 		StaticModel();
@@ -28,6 +28,7 @@ namespace GLib
 
 		MeshList* GetMeshList();
 		string GetFilename();
+		Material GetMaterial();
 	private:
 		MeshList mMeshList;
 		string mFilename;

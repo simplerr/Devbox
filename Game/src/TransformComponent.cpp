@@ -29,6 +29,11 @@ void TransformComponent::Init(LuaPlus::LuaObject initData)
 		mRotation.z = initData["rot_z"].ToNumber();
 
 	// Scale.
+	if(!initData["scale"].IsNil())
+	{
+		float scale = initData["scale"].ToNumber();
+		mScale = XMFLOAT3(scale, scale, scale);
+	}
 	if(!initData["scale_x"].IsNil())
 		mScale.x = initData["scale_x"].ToNumber();
 	if(!initData["scale_y"].IsNil())

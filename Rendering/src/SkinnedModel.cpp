@@ -246,4 +246,20 @@ float SkinnedModel::GetAnimationSpeed()
 	return mAnimator->GetAnimationSpeed();
 }
 
+void SkinnedModel::SetMaterial(Material material)
+{
+	for(int i = 0; i < mMeshList.size(); i++) 
+		mMeshList[i]->SetMaterial(material);
+}
+
+Material SkinnedModel::GetMaterial()
+{
+	if(mMeshList.size() == 0)
+		GLIB_ERROR("mMeshList.size() = 0");
+	else
+	{
+		return mMeshList[0]->GetMaterial();
+	}
+}
+
 }	// End of Graphics Library namespace.

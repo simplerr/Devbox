@@ -16,6 +16,7 @@ public:
 	void CreateScriptObject();
 	void RegisterScriptFunctions();
 
+	// Transform
 	void SetPosition(float x, float y, float z);
 	void SetRotation(float x, float y, float z);
 	void SetScale(float x, float y, float z);
@@ -23,6 +24,11 @@ public:
 	LuaPlus::LuaObject GetPosition();
 	LuaPlus::LuaObject GetRotation();
 	LuaPlus::LuaObject GetScale();
+
+	// Model
+	void SetAlpha(float alpha);
+	void SetAnimationIndex(int index, float duration);
+	void SetAnimationSpeed(float speed);
 
 	const char* GetName() { return g_Name; }
 	static const char* g_Name;

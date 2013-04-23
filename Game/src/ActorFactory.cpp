@@ -2,6 +2,8 @@
 #include "TransformComponent.h"
 #include "BoundingBoxComponent.h"
 #include "ScriptComponent.h"
+#include "StaticModelComponent.h"
+#include "AnimatedModelComponent.h"
 #include "Actor.h"
 #include "LuaManager.h"
 #include "GlibStd.h"
@@ -14,6 +16,8 @@ ActorFactory::ActorFactory()
 	mComponentFactory.Register<TransformComponent>(TransformComponent::g_Name);
 	mComponentFactory.Register<BoundingBoxComponent>(BoundingBoxComponent::g_Name);
 	mComponentFactory.Register<ScriptComponent>(ScriptComponent::g_Name);
+	mComponentFactory.Register<StaticModelComponent>(StaticModelComponent::g_Name);
+	mComponentFactory.Register<AnimatedModelComponent>(AnimatedModelComponent::g_Name);
 }
 
 ActorFactory::~ActorFactory()

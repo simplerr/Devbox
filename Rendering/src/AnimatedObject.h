@@ -23,6 +23,7 @@ namespace GLib {
 		void SetAnimation(int index);
 		void SetAnimation(int index, float duration);
 		void AdjustAnimationSpeedBy(float percent);
+
 		virtual AxisAlignedBox GetBoundingBox();
 		SkinnedModel* GetModel();
 		string GetFilename();

@@ -98,4 +98,14 @@ void StaticModel::SetMaterial(Material material)
 		mMeshList[i]->SetMaterial(material);
 }
 
+Material StaticModel::GetMaterial()
+{
+	if(mMeshList.size() == 0)
+		GLIB_ERROR("mMeshList.size() = 0");
+	else
+	{
+		return mMeshList[0]->GetMaterial();
+	}
+}
+
 }	// End of Graphics Library namespace.

@@ -29,7 +29,7 @@ namespace GLib
 	//!
 	//	Loads models and stores them to support instancing.
 	//!
-	class ModelImporter
+	class GLIB_API ModelImporter
 	{
 	public:
 		ModelImporter(PrimitiveFactory* primitiveFactory);

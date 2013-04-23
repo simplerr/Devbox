@@ -4,6 +4,8 @@
 #include "Actor.h"
 #include "Input.h"
 #include "TransformComponent.h"
+#include "StaticModelComponent.h"
+#include "AnimatedModelComponent.h"
 
 
 // This is the name of the metatable where all the function definitions exported to Lua will live.
@@ -91,12 +93,19 @@ void ScriptComponent::RegisterScriptFunctions()
 	metaTableObj.SetObject("__index", metaTableObj);
 
 	metaTableObj.RegisterObjectDirect("GetActorId",		        (ScriptComponent*)0, &ScriptComponent::GetActorId);
+
+	// Transform
 	metaTableObj.RegisterObjectDirect("SetPosition",	        (ScriptComponent*)0, &ScriptComponent::SetPosition);
 	metaTableObj.RegisterObjectDirect("SetRotation",	        (ScriptComponent*)0, &ScriptComponent::SetRotation);
 	metaTableObj.RegisterObjectDirect("SetScale",				(ScriptComponent*)0, &ScriptComponent::SetScale);
 	metaTableObj.RegisterObjectDirect("GetPosition",	        (ScriptComponent*)0, &ScriptComponent::GetPosition);
 	metaTableObj.RegisterObjectDirect("GetRotation",	        (ScriptComponent*)0, &ScriptComponent::GetRotation);
 	metaTableObj.RegisterObjectDirect("GetScale",				(ScriptComponent*)0, &ScriptComponent::GetScale);
+
+	// Model
+	metaTableObj.RegisterObjectDirect("SetAlpha",						(ScriptComponent*)0, &ScriptComponent::SetAlpha);
+	metaTableObj.RegisterObjectDirect("SetAnimationIndex",				(ScriptComponent*)0, &ScriptComponent::SetAnimationIndex);
+	metaTableObj.RegisterObjectDirect("SetAnimationSpeed",				(ScriptComponent*)0, &ScriptComponent::SetAnimationSpeed);
 }
 
 void ScriptComponent::SetPosition(float x, float y, float z)
@@ -107,7 +116,7 @@ void ScriptComponent::SetPosition(float x, float y, float z)
 		transform->SetPosition(XMFLOAT3(x, y, z));
 	else
 	{
-		GLIB_ERROR("No transform component found");
+		GLIB_ERROR("No TransformComponent found");
 	}
 
 	GLIB_LOG("Lua", string("SetPosition() on ") + to_string(GetActorId()));
@@ -121,7 +130,7 @@ void ScriptComponent::SetRotation(float x, float y, float z)
 		transform->SetRotation(XMFLOAT3(x, y, z));
 	else
 	{
-		GLIB_ERROR("No transform component found");
+		GLIB_ERROR("No TransformComponent found");
 	}
 
 	GLIB_LOG("Lua", string("SetRotation() on ") + to_string(GetActorId()));
@@ -135,10 +144,29 @@ void ScriptComponent::SetScale(float x, float y, float z)
 		transform->SetScale(XMFLOAT3(x, y, z));
 	else
 	{
-		GLIB_ERROR("No transform component found");
+		GLIB_ERROR("No TransformComponent found");
 	}
 
 	GLIB_LOG("Lua", string("SetScale() on ") + to_string(GetActorId()));
+}
+
+void ScriptComponent::SetAlpha(float alpha)
+{
+	auto staticModelComponent = MakeStrongPtr(mOwner->GetComponent<StaticModelComponent>(StaticModelComponent::g_Name));
+
+	if(staticModelComponent)
+	{
+		staticModelComponent->SetAlpha(alpha);
+		return;
+	}
+
+	auto animatedModelComponent = MakeStrongPtr(mOwner->GetComponent<AnimatedModelComponent>(AnimatedModelComponent::g_Name));
+
+	if(animatedModelComponent)
+	{
+		animatedModelComponent->SetAlpha(alpha);
+		return;
+	}
 }
 
 LuaPlus::LuaObject ScriptComponent::GetPosition()
@@ -174,4 +202,32 @@ LuaPlus::LuaObject ScriptComponent::GetScale()
 int ScriptComponent::GetActorId()
 {
 	return mOwner->GetId();
+}
+
+void ScriptComponent::SetAnimationIndex(int index, float duration)
+{
+	auto animatedModelComponent = MakeStrongPtr(mOwner->GetComponent<AnimatedModelComponent>(AnimatedModelComponent::g_Name));
+
+	if(animatedModelComponent)
+	{
+		animatedModelComponent->SetAnimation(index, duration);
+	}
+	else
+	{
+		GLIB_ERROR("No AnimatedModelComponent found");
+	}
+}
+
+void ScriptComponent::SetAnimationSpeed(float speed)
+{
+	auto animatedModelComponent = MakeStrongPtr(mOwner->GetComponent<AnimatedModelComponent>(AnimatedModelComponent::g_Name));
+
+	if(animatedModelComponent)
+	{
+		animatedModelComponent->AdjustAnimationSpeedBy(speed);
+	}
+	else
+	{
+		GLIB_ERROR("No AnimatedModelComponent found");
+	}
 }

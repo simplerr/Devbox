@@ -68,12 +68,6 @@ namespace GLib
 			pGraphics->DrawBoundingBox(&GetBoundingBox(), GetWorldMatrix(), Material(Colors::Blue));
 	}
 
-	//! Sets which animation to use by index.
-	void AnimatedObject::SetAnimation(int index)
-	{
-		mCurrentAnimIndex = index;
-	}
-
 	bool AnimatedObject::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)
 	{
 		if(XNA::IntersectRayAxisAlignedBox(origin, direction, &GetBoundingBox(), &pDist))
@@ -131,6 +125,12 @@ namespace GLib
 	{
 		SetAnimation(index);
 		mAnimationDuration = duration;
+	}
+
+	//! Sets which animation to use by index.
+	void AnimatedObject::SetAnimation(int index)
+	{
+		mCurrentAnimIndex = index;
 	}
 
 	int AnimatedObject::GetCurrentAnimation()

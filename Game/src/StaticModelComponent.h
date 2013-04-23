@@ -24,5 +24,6 @@ public:
 	static const char* g_Name;
 private:
 	GLib::StaticModel* mModel;
+	float mAlpha;
 };
 	

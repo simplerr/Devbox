@@ -25,11 +25,14 @@ ActorFactory::~ActorFactory()
 	
 }
 
-StrongActorPtr ActorFactory::CreateActor(string actorName)
+StrongActorPtr ActorFactory::CreateActor(const char* actorName)
 {
-	StrongActorPtr pActor(new Actor(GetNextActorId()));
+	LuaPlus::LuaObject luaActor = LuaManager::Get()->GetLuaState()->GetGlobal(actorName);
 
-	LuaPlus::LuaObject luaActor = LuaManager::Get()->GetLuaState()->GetGlobal(actorName.c_str());
+	if(luaActor.IsNil())
+		return nullptr;
+
+	StrongActorPtr pActor(new Actor(GetNextActorId()));
 
 	if(pActor)
 		pActor->Init(luaActor, actorName);

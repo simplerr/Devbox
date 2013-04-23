@@ -19,12 +19,12 @@ public:
 	ActorFactory();
 	virtual ~ActorFactory();
 
-	StrongActorPtr CreateActor(string actorName);
+	StrongActorPtr CreateActor(const char* actorName);
 	StrongComponentPtr CreateComponent(string componentName, LuaPlus::LuaObject data);
 	void AddComponentToActor(StrongActorPtr pActor, string componentName);
+
 private:
 	ActorId GetNextActorId();
-
 	ActorId mLastActorId;
 protected:
 	GenericObjectFactory<Component, string> mComponentFactory;

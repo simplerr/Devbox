@@ -25,17 +25,20 @@ namespace GLib
 		XMVECTOR direction;
 		direction = XMLoadFloat3(&GetDirection());
 
-		// Forward - backward.
-		if(pInput->KeyDown('W')) 
-			Move(GetDirection() * GetMovementSpeed());
-		else if(pInput->KeyDown('S')) 
-			Move(GetDirection() * -GetMovementSpeed());
+		if(mRotateButton == -1 || pInput->KeyDown(mRotateButton))
+		{
+			// Forward - backward.
+			if(pInput->KeyDown('W')) 
+				Move(GetDirection() * GetMovementSpeed());
+			else if(pInput->KeyDown('S')) 
+				Move(GetDirection() * -GetMovementSpeed());
 
-		// Left - right.
-		if(pInput->KeyDown('A')) 
-			Move(GetRight() * -GetMovementSpeed());
-		else if(pInput->KeyDown('D')) 
-			Move(GetRight() * GetMovementSpeed());
+			// Left - right.
+			if(pInput->KeyDown('A')) 
+				Move(GetRight() * -GetMovementSpeed());
+			else if(pInput->KeyDown('D')) 
+				Move(GetRight() * GetMovementSpeed());
+		}
 
 		// Rotate the camera.
 		if(mRotateButton == -1 || pInput->KeyDown(mRotateButton))

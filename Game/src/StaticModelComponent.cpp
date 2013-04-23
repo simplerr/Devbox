@@ -11,6 +11,8 @@ const char* StaticModelComponent::g_Name = "StaticModelComponent";
 StaticModelComponent::StaticModelComponent()
 {
 	mModel = nullptr;
+
+	mAlpha = 1.0f;
 }
 
 void StaticModelComponent::Init(LuaPlus::LuaObject initData)
@@ -27,15 +29,21 @@ void StaticModelComponent::Init(LuaPlus::LuaObject initData)
 
 void StaticModelComponent::Draw(GLib::Graphics* pGraphics)
 {
+	// [NOTE][TODO]
+	// Set the alpha.
+	// This has to be in the Component because every StaticModel* is shared among all actors,
+	// placed here for the same reason as the animation index issue in SkinnedModel.
+	GLib::Material material = mModel->GetMaterial();
+	material.diffuse.w = mAlpha;
+	mModel->SetMaterial(material);
+
 	auto transfrom = MakeStrongPtr(mOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
 	mModel->Draw(pGraphics, transfrom->GetWorldMatrix());
 }
 
 void StaticModelComponent::SetAlpha(float alpha)
 {
-	GLib::Material material = mModel->GetMaterial();
-	material.diffuse.w = alpha;
-	mModel->SetMaterial(material);
+	mAlpha = alpha;
 }
 
 GLib::Material StaticModelComponent::GetMaterial()

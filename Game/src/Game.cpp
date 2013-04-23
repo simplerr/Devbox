@@ -89,7 +89,14 @@ void Game::Init()
 void Game::ExecuteLuaScripts()
 {
 	// Execute all the different lua files of interest here.
+	LuaManager::Get()->ExecuteFile("data/lua/player.lua");
 	LuaManager::Get()->ExecuteFile("data/lua/default-actor.lua");
+	LuaManager::Get()->ExecuteFile("data/lua/default-scene.lua");
+
+	// [TEMP] Move this to proper location
+	// Register the add_actor function
+	LuaPlus::LuaObject globals = LuaManager::Get()->GetGlobalVars();
+	globals.RegisterDirect("add_actor", *this, &Game::AddActor);
 }
 
 void Game::ReloadActors()
@@ -101,10 +108,25 @@ void Game::ReloadActors()
 
 	ScriptExports::Register();
 
-	for(int i = 0; i < 1; i++)
+	// [TEMP] Move this to proper location
+	// Call "scene" on_created()
+	LuaPlus::LuaObject object = LuaManager::Get()->GetGlobalVars()["on_created"];
+	if(object.IsFunction())
 	{
-		auto actor = mActorFactory->CreateActor("default_actor");
+		LuaPlus::LuaFunction<void> on_created = object;
+		on_created();
+	}
+}
+
+void Game::AddActor(const char* name)
+{
+	StrongActorPtr actor = mActorFactory->CreateActor(name);
+
+	if(actor != nullptr)
 		mActorManager->AddActor(actor);
+	else
+	{
+		GLIB_INFO(string("Actor \"") + name + "\" not found");
 	}
 }
 

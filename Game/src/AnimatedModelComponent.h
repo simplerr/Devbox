@@ -32,4 +32,5 @@ private:
 	int		mPreviousAnimation;
 	float	mAnimationDuration;
 	float   mElapsedTime;
+	float	mAlpha;
 };

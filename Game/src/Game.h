@@ -42,6 +42,8 @@ public:
 	void InitWorld();
 	void ExecuteLuaScripts();
 	void ReloadActors();
+
+	void AddActor(const char* name);
 private:
 	bool mDrawDebug;
 	GLib::World* mWorld;

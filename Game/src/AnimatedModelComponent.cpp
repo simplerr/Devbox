@@ -17,6 +17,8 @@ AnimatedModelComponent::AnimatedModelComponent()
 	mElapsedTime = 0.0f;
 	mAnimationDuration = INFINITE_ANIMATION;
 
+	mAlpha = 1.0f;
+
 	SetAnimation(0);
 }
 
@@ -49,6 +51,12 @@ void AnimatedModelComponent::Update(float dt)
 
 void AnimatedModelComponent::Draw(GLib::Graphics* pGraphics)
 {
+	// [NOTE][TODO]
+	// Set the alpha.
+	GLib::Material material = mModel->GetMaterial();
+	material.diffuse.w = mAlpha;
+	mModel->SetMaterial(material);
+
 	auto transfrom = MakeStrongPtr(mOwner->GetComponent<TransformComponent>(TransformComponent::g_Name));
 	mModel->SetAnimation(mCurrentAnimIndex);
 	mModel->SetElapsedTime(mElapsedTime);
@@ -70,9 +78,7 @@ void AnimatedModelComponent::AdjustAnimationSpeedBy(float percent)
 
 void AnimatedModelComponent::SetAlpha(float alpha)
 {
-	GLib::Material material = mModel->GetMaterial();
-	material.diffuse.w = alpha;
-	mModel->SetMaterial(material);
+	mAlpha = alpha;
 }
 
 GLib::Material AnimatedModelComponent::GetMaterial()

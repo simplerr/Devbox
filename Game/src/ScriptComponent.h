@@ -30,6 +30,8 @@ public:
 	void SetAnimationIndex(int index, float duration);
 	void SetAnimationSpeed(float speed);
 
+	float GetAlpha();
+
 	const char* GetName() { return g_Name; }
 	static const char* g_Name;
 private:

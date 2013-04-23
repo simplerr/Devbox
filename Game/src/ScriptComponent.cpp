@@ -1,4 +1,5 @@
 #include "ScriptComponent.h"
+#include "Light.h"
 #include "LuaManager.h"
 #include "GlibStd.h"
 #include "Actor.h"
@@ -105,6 +106,7 @@ void ScriptComponent::RegisterScriptFunctions()
 	metaTableObj.RegisterObjectDirect("SetAlpha",						(ScriptComponent*)0, &ScriptComponent::SetAlpha);
 	metaTableObj.RegisterObjectDirect("SetAnimationIndex",				(ScriptComponent*)0, &ScriptComponent::SetAnimationIndex);
 	metaTableObj.RegisterObjectDirect("SetAnimationSpeed",				(ScriptComponent*)0, &ScriptComponent::SetAnimationSpeed);
+	metaTableObj.RegisterObjectDirect("GetAlpha",						(ScriptComponent*)0, &ScriptComponent::GetAlpha);
 }
 
 void ScriptComponent::SetPosition(float x, float y, float z)
@@ -165,7 +167,7 @@ void ScriptComponent::SetAlpha(float alpha)
 	if(staticModelComponent)
 	{
 		staticModelComponent->SetAlpha(alpha);
-		GLIB_LOG("Lua", string("SetAlpha() on ") + to_string(GetActorId()));
+		//GLIB_LOG("Lua", string("SetAlpha() on ") + to_string(GetActorId()));
 		return;
 	}
 
@@ -174,7 +176,7 @@ void ScriptComponent::SetAlpha(float alpha)
 	if(animatedModelComponent)
 	{
 		animatedModelComponent->SetAlpha(alpha);
-		GLIB_LOG("Lua", string("SetAlpha() on ") + to_string(GetActorId()));
+		//GLIB_LOG("Lua", string("SetAlpha() on ") + to_string(GetActorId()));
 		return;
 	}
 
@@ -209,6 +211,27 @@ LuaPlus::LuaObject ScriptComponent::GetScale()
 	LuaManager::Get()->ConvertVec3ToTable(transform->GetScale(), scale);
 
 	return scale;
+}
+
+float ScriptComponent::GetAlpha()
+{
+	auto staticModelComponent = MakeStrongPtr(mOwner->GetComponent<StaticModelComponent>(StaticModelComponent::g_Name));
+
+	if(staticModelComponent)
+	{
+		//GLIB_LOG("Lua", string("GetAlpha() on ") + to_string(GetActorId()));
+		return staticModelComponent->GetMaterial().diffuse.w;
+	}
+
+	auto animatedModelComponent = MakeStrongPtr(mOwner->GetComponent<AnimatedModelComponent>(AnimatedModelComponent::g_Name));
+
+	if(animatedModelComponent)
+	{
+		//GLIB_LOG("Lua", string("GetAlpha() on ") + to_string(GetActorId()));
+		return animatedModelComponent->GetMaterial().diffuse.w;
+	}
+
+	//GLIB_LOG("Lua", "No Static/Animated ModelComponent found");
 }
 
 int ScriptComponent::GetActorId()

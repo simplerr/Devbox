@@ -82,6 +82,8 @@ void Game::Init()
 	mActorFactory = new ActorFactory;
 
 	ReloadActors();
+
+	texture = GlobalApp::GetGraphics()->LoadTexture("swag.bmp");
 }
 
 void Game::ExecuteLuaScripts()
@@ -99,7 +101,7 @@ void Game::ReloadActors()
 
 	ScriptExports::Register();
 
-	for(int i = 0; i < 20; i++)
+	for(int i = 0; i < 1; i++)
 	{
 		auto actor = mActorFactory->CreateActor("default_actor");
 		mActorManager->AddActor(actor);
@@ -158,7 +160,7 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	if(mDrawDebug)
 	{
 		char buffer[244];
-		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", 0.0f, 0.0f, GetCurrentFps());
+		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", GLib::GlobalApp::GetInput()->MousePosition().x, GLib::GlobalApp::GetInput()->MousePosition().y, GetCurrentFps());
 		pGraphics->DrawText(buffer, GLib::GlobalApp::GetClientWidth()-100, 400, 20, GLib::ColorRGBA(255, 255, 255, 255));
 	}
 

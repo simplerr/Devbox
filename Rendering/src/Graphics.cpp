@@ -126,13 +126,13 @@ bool Graphics::Init(int clientWidth, int clientHeight, HWND hwnd, bool fullscree
 Texture2D* Graphics::LoadTexture(string filename, float scale)
 {
 	// A bit of a hax... [NOTE][TODO][HAX]
-	char buffer[256];
+	/*char buffer[256];
 	sprintf(buffer, "%s - %f", filename.c_str(), scale);
-	string textureId = buffer;
+	string textureId = buffer;*/
 
 	// Is the texture already loaded?
-	if(mTextureMap.find(textureId) != mTextureMap.end()) {
-		return mTextureMap[textureId];
+	if(mTextureMap.find(filename) != mTextureMap.end()) {
+		return mTextureMap[filename];
 	}
 	else // Not already loaded.
 	{
@@ -144,8 +144,8 @@ Texture2D* Graphics::LoadTexture(string filename, float scale)
 
 		texture2d->scale = scale;
 		texture2d->name = filename;
-		mTextureMap[textureId] = texture2d;
-		return mTextureMap[textureId];
+		mTextureMap[filename] = texture2d;
+		return mTextureMap[filename];
 	}
 }
 
@@ -230,7 +230,7 @@ void Graphics::DrawBillboards()
 	}
 }
 
-void Graphics::DrawScreenQuad(Texture2D* texture, float x, float y, float width, float height)
+void Graphics::DrawScreenTexture(Texture2D* texture, float x, float y, float width, float height)
 {
 	ID3D11DeviceContext* context = GetD3D()->GetContext();
 
@@ -273,6 +273,11 @@ void Graphics::DrawScreenQuad(Texture2D* texture, float x, float y, float width,
 
 	// Restore the depth testing.
 	context->OMSetDepthStencilState(oldDSS, 0);
+}
+
+void Graphics::DrawScreenTexture(string texture, float x, float y, float width, float height)
+{
+	DrawScreenTexture(LoadTexture(texture), x, y, width, height);
 }
 
 void Graphics::DrawBoundingBox(AxisAlignedBox* aabb, CXMMATRIX worldMatrix, Material material, float transparency)

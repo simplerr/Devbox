@@ -13,6 +13,11 @@ public:
 	static bool KeyDown(const char* key);
 
 	static LuaPlus::LuaObject GetCursorPosition();
+
+	// Graphics exports.
+	static void DrawString(const char* text, int x, int y, int size);
+	static void DrawTexture(const char* texture, int x, int y, int width, int height);
+	static void DrawAABB(float x, float y, float z, float extents, float alpha);
 private:
 	static int MapToKey(std::string str);
 };

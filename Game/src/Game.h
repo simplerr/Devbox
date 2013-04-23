@@ -45,6 +45,7 @@ public:
 private:
 	bool mDrawDebug;
 	GLib::World* mWorld;
+	GLib::Texture2D* texture;
 	ActorManager* mActorManager;
 	ActorFactory* mActorFactory;
 };

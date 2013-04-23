@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Component.h"
+#include "Light.h"
 
 namespace GLib {
 	class SkinnedModel;
@@ -20,6 +21,8 @@ public:
 	void SetAnimation(int index, float duration = INFINITE_ANIMATION);
 	void AdjustAnimationSpeedBy(float percent);
 	void SetAlpha(float alpha);
+
+	GLib::Material GetMaterial();
 
 	const char* GetName() { return g_Name; }
 	static const char* g_Name;

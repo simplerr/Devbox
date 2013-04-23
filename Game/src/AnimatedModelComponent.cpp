@@ -74,3 +74,8 @@ void AnimatedModelComponent::SetAlpha(float alpha)
 	material.diffuse.w = alpha;
 	mModel->SetMaterial(material);
 }
+
+GLib::Material AnimatedModelComponent::GetMaterial()
+{
+	return mModel->GetMaterial();
+}

@@ -37,3 +37,8 @@ void StaticModelComponent::SetAlpha(float alpha)
 	material.diffuse.w = alpha;
 	mModel->SetMaterial(material);
 }
+
+GLib::Material StaticModelComponent::GetMaterial()
+{
+	return mModel->GetMaterial();
+}

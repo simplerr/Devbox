@@ -20,6 +20,7 @@ struct Voxel
 };
 
 typedef unsigned int ChunkId;
+const ChunkId INVALID_CHUNK_ID = 0;
 
 class ChunkManager
 {
@@ -30,7 +31,7 @@ public:
 	void Update(float dt);
 	void Draw(GLib::Graphics* pGraphics);
 
-	void PositionToChunk(XMFLOAT3 position);
+	ChunkId PositionToChunkId(XMFLOAT3 position);
 
 	void AddVoxel(float x, float y, float z);
 
@@ -39,5 +40,5 @@ private:
 	ChunkId mLastChunkId;
 
 private:
-	map<ChunkId, Chunk*> mChunkList;
+	map<ChunkId, Chunk*> mChunkMap;
 };

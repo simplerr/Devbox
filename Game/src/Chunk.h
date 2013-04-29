@@ -58,10 +58,14 @@ public:
 	void AddCube(int x, int y, int z);
 
 	void BuildMeshPrimitive();
-
 	void Rebuild();
 
 	void Render(GLib::Graphics* pGraphics);
+	bool RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist);
+
+	void SetColor(XMFLOAT4 color);
+
+	XMFLOAT3 GetPosition();
 
 	static const int CHUNK_SIZE = 16;
 	static const int VOXEL_SIZE = 4;
@@ -71,9 +75,11 @@ private:
 	XMFLOAT3 mPosition;
 	int mBlockCount;
 
+	XMFLOAT4 mColor;
+
 	// Used for building the chunk.
-	GLib::VoxelVertex vertices[24*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
-	UINT indices[36*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
+	GLib::VoxelVertex mVertices[24*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
+	UINT mIndices[36*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
 
 	/*vector<GLib::VoxelVertex> vertices;
 	vector<UINT> indices;*/

@@ -3,12 +3,13 @@
 
 #include "Utility.h"
 #include "GlibStd.h"
-#include "xnacollision.h"
 #include "Runnable.h"
 #include <sstream>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <xnamath.h>
+#include "xnacollision.h"
 using namespace std;
 
 #pragma warning( pop ) 
@@ -267,6 +268,202 @@ VOID TransformAxisAlignedBoxCustom(XNA::AxisAlignedBox* pOut, const XNA::AxisAli
     XMStoreFloat3( &pOut->Extents, ( Max - Min ) * 0.5f );
 
     return;
+}
+
+//-----------------------------------------------------------------------------
+// Compute the intersection of a ray (Origin, Direction) with a triangle 
+// (V0, V1, V2).  Return TRUE if there is an intersection and also set *pDist 
+// to the distance along the ray to the intersection.
+// 
+// The algorithm is based on Moller, Tomas and Trumbore, "Fast, Minimum Storage 
+// Ray-Triangle Intersection", Journal of Graphics Tools, vol. 2, no. 1, 
+// pp 21-28, 1997.
+//-----------------------------------------------------------------------------
+BOOL GLibIntersectRayTriangle( FXMVECTOR Origin, FXMVECTOR Direction, FXMVECTOR V0, CXMVECTOR V1, CXMVECTOR V2,
+							  FLOAT* pDist )
+{
+	XMASSERT( pDist );
+	//XMASSERT( XMVector3IsUnit( Direction ) );
+
+	static const XMVECTOR Epsilon =
+	{
+		1e-20f, 1e-20f, 1e-20f, 1e-20f
+	};
+
+	XMVECTOR Zero = XMVectorZero();
+
+	XMVECTOR e1 = V1 - V0;
+	XMVECTOR e2 = V2 - V0;
+
+	// p = Direction ^ e2;
+	XMVECTOR p = XMVector3Cross( Direction, e2 );
+
+	// det = e1 * p;
+	XMVECTOR det = XMVector3Dot( e1, p );
+
+	XMVECTOR u, v, t;
+
+	if( XMVector3GreaterOrEqual( det, Epsilon ) )
+	{
+		// Determinate is positive (front side of the triangle).
+		XMVECTOR s = Origin - V0;
+
+		// u = s * p;
+		u = XMVector3Dot( s, p );
+
+		XMVECTOR NoIntersection = XMVectorLess( u, Zero );
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorGreater( u, det ) );
+
+		// q = s ^ e1;
+		XMVECTOR q = XMVector3Cross( s, e1 );
+
+		// v = Direction * q;
+		v = XMVector3Dot( Direction, q );
+
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorLess( v, Zero ) );
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorGreater( u + v, det ) );
+
+		// t = e2 * q;
+		t = XMVector3Dot( e2, q );
+
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorLess( t, Zero ) );
+
+		if( XMVector4EqualInt( NoIntersection, XMVectorTrueInt() ) )
+			return FALSE;
+	}
+	else if( XMVector3LessOrEqual( det, -Epsilon ) )
+	{
+		// Determinate is negative (back side of the triangle).
+		XMVECTOR s = Origin - V0;
+
+		// u = s * p;
+		u = XMVector3Dot( s, p );
+
+		XMVECTOR NoIntersection = XMVectorGreater( u, Zero );
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorLess( u, det ) );
+
+		// q = s ^ e1;
+		XMVECTOR q = XMVector3Cross( s, e1 );
+
+		// v = Direction * q;
+		v = XMVector3Dot( Direction, q );
+
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorGreater( v, Zero ) );
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorLess( u + v, det ) );
+
+		// t = e2 * q;
+		t = XMVector3Dot( e2, q );
+
+		NoIntersection = XMVectorOrInt( NoIntersection, XMVectorGreater( t, Zero ) );
+
+		if ( XMVector4EqualInt( NoIntersection, XMVectorTrueInt() ) )
+			return FALSE;
+	}
+	else
+	{
+		// Parallel ray.
+		return FALSE;
+	}
+
+	XMVECTOR inv_det = XMVectorReciprocal( det );
+
+	t *= inv_det;
+
+	// u * inv_det and v * inv_det are the barycentric cooridinates of the intersection.
+
+	// Store the x-component to *pDist
+	XMStoreFloat( pDist, t );
+
+	return TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// Return TRUE if any of the elements of a 3 vector are equal to 0xffffffff.
+// Slightly more efficient than using XMVector3EqualInt.
+//-----------------------------------------------------------------------------
+static inline BOOL GLibXMVector3AnyTrue( FXMVECTOR V )
+{
+	XMVECTOR C;
+
+	// Duplicate the fourth element from the first element.
+	C = XMVectorSwizzle( V, 0, 1, 2, 0 );
+
+	return XMComparisonAnyTrue( XMVector4EqualIntR( C, XMVectorTrueInt() ) );
+}
+
+//-----------------------------------------------------------------------------
+// Compute the intersection of a ray (Origin, Direction) with an axis aligned 
+// box using the slabs method.
+//-----------------------------------------------------------------------------
+BOOL GLibIntersectRayAxisAlignedBox( FXMVECTOR Origin, FXMVECTOR Direction, const XNA::AxisAlignedBox* pVolume, FLOAT* pDist )
+{
+	XMASSERT( pVolume );
+	XMASSERT( pDist );
+	//XMASSERT( XMVector3IsUnit( Direction ) );
+
+	static const XMVECTOR Epsilon =
+	{
+		1e-20f, 1e-20f, 1e-20f, 1e-20f
+	};
+	static const XMVECTOR FltMin =
+	{
+		-FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX
+	};
+	static const XMVECTOR FltMax =
+	{
+		FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX
+	};
+
+	// Load the box.
+	XMVECTOR Center = XMLoadFloat3( &pVolume->Center );
+	XMVECTOR Extents = XMLoadFloat3( &pVolume->Extents );
+
+	// Adjust ray origin to be relative to center of the box.
+	XMVECTOR TOrigin = Center - Origin;
+
+	// Compute the dot product againt each axis of the box.
+	// Since the axii are (1,0,0), (0,1,0), (0,0,1) no computation is necessary.
+	XMVECTOR AxisDotOrigin = TOrigin;
+	XMVECTOR AxisDotDirection = Direction;
+
+	// if (fabs(AxisDotDirection) <= Epsilon) the ray is nearly parallel to the slab.
+	XMVECTOR IsParallel = XMVectorLessOrEqual( XMVectorAbs( AxisDotDirection ), Epsilon );
+
+	// Test against all three axii simultaneously.
+	XMVECTOR InverseAxisDotDirection = XMVectorReciprocal( AxisDotDirection );
+	XMVECTOR t1 = ( AxisDotOrigin - Extents ) * InverseAxisDotDirection;
+	XMVECTOR t2 = ( AxisDotOrigin + Extents ) * InverseAxisDotDirection;
+
+	// Compute the max of min(t1,t2) and the min of max(t1,t2) ensuring we don't
+	// use the results from any directions parallel to the slab.
+	XMVECTOR t_min = XMVectorSelect( XMVectorMin( t1, t2 ), FltMin, IsParallel );
+	XMVECTOR t_max = XMVectorSelect( XMVectorMax( t1, t2 ), FltMax, IsParallel );
+
+	// t_min.x = maximum( t_min.x, t_min.y, t_min.z );
+	// t_max.x = minimum( t_max.x, t_max.y, t_max.z );
+	t_min = XMVectorMax( t_min, XMVectorSplatY( t_min ) );  // x = max(x,y)
+	t_min = XMVectorMax( t_min, XMVectorSplatZ( t_min ) );  // x = max(max(x,y),z)
+	t_max = XMVectorMin( t_max, XMVectorSplatY( t_max ) );  // x = min(x,y)
+	t_max = XMVectorMin( t_max, XMVectorSplatZ( t_max ) );  // x = min(min(x,y),z)
+
+	// if ( t_min > t_max ) return FALSE;
+	XMVECTOR NoIntersection = XMVectorGreater( XMVectorSplatX( t_min ), XMVectorSplatX( t_max ) );
+
+	// if ( t_max < 0.0f ) return FALSE;
+	NoIntersection = XMVectorOrInt( NoIntersection, XMVectorLess( XMVectorSplatX( t_max ), XMVectorZero() ) );
+
+	// if (IsParallel && (-Extents > AxisDotOrigin || Extents < AxisDotOrigin)) return FALSE;
+	XMVECTOR ParallelOverlap = XMVectorInBounds( AxisDotOrigin, Extents );
+	NoIntersection = XMVectorOrInt( NoIntersection, XMVectorAndCInt( IsParallel, ParallelOverlap ) );
+
+	if(!GLibXMVector3AnyTrue( NoIntersection ) )
+	{
+		// Store the x-component to *pDist
+		XMStoreFloat( pDist, t_min );
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 }	// End of Graphics Library namespace.

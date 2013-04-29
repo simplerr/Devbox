@@ -14,6 +14,7 @@
 #include "defs.h"
 #include <string>
 #include <vector>
+#include <xnamath.h>
 
 #pragma warning( pop ) 
 
@@ -35,6 +36,9 @@ namespace GLib
 	unsigned int GLIB_API	ColorRGBA(byte red, byte green, byte blue, byte alpha);
 	vector<string> GLIB_API SplitString(string text, char delim);
 	bool GLIB_API			IsNumber(const std::string& s);
+
+	BOOL GLIB_API GLibIntersectRayTriangle( FXMVECTOR Origin, FXMVECTOR Direction, FXMVECTOR V0, CXMVECTOR V1, CXMVECTOR V2, FLOAT* pDist );
+	BOOL GLIB_API GLibIntersectRayAxisAlignedBox( FXMVECTOR Origin, FXMVECTOR Direction, const XNA::AxisAlignedBox* pVolume, FLOAT* pDist );
 
 	//! Takes a "0 0 0 255" string and splits it up to a UIN32 color value.
 	UINT32 StripRGBA(string colors);
@@ -121,17 +125,17 @@ namespace GLib
 //
 // Overloaded operators to make things smoother.
 //
-XMFLOAT3 operator+(const XMFLOAT3 a, const XMFLOAT3 b);
-XMFLOAT3 operator-(const XMFLOAT3 a, const XMFLOAT3 b);
+XMFLOAT3 GLIB_API operator+(const XMFLOAT3 a, const XMFLOAT3 b);
+XMFLOAT3 GLIB_API operator-(const XMFLOAT3 a, const XMFLOAT3 b);
 
-XMFLOAT3 operator+=(const XMFLOAT3 a, const XMVECTOR b);
-XMFLOAT3 operator-=(const XMFLOAT3 a, const XMVECTOR b);
+XMFLOAT3 GLIB_API operator+=(const XMFLOAT3 a, const XMVECTOR b);
+XMFLOAT3 GLIB_API operator-=(const XMFLOAT3 a, const XMVECTOR b);
 
-XMFLOAT2 operator+(const XMFLOAT2 a, const XMFLOAT2 b);
-XMFLOAT2 operator-(const XMFLOAT2 a, const XMFLOAT2 b);
+XMFLOAT2 GLIB_API operator+(const XMFLOAT2 a, const XMFLOAT2 b);
+XMFLOAT2 GLIB_API operator-(const XMFLOAT2 a, const XMFLOAT2 b);
 
-XMFLOAT4 operator*(const XMFLOAT4 a, const float b);
-XMFLOAT3 operator*(const XMFLOAT3 a, const float b);
-XMFLOAT3 operator*(const float b, const XMFLOAT3 a);
+XMFLOAT4 GLIB_API operator*(const XMFLOAT4 a, const float b);
+XMFLOAT3 GLIB_API operator*(const XMFLOAT3 a, const float b);
+XMFLOAT3 GLIB_API operator*(const float b, const XMFLOAT3 a);
 
-XMFLOAT3 operator+(const XMFLOAT3 a, const float b);
+XMFLOAT3 GLIB_API operator+(const XMFLOAT3 a, const float b);

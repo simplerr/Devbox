@@ -25,7 +25,7 @@ cbuffer cbPerObject
 }
 
 //
-// 7 local object(s)
+// 8 local object(s)
 //
 Texture2DArray gLayerMapArray;
 Texture2D gBlendMap;
@@ -51,6 +51,10 @@ SamplerComparisonState samShadow
     AddressW = uint(BORDER /* 4 */);
     BorderColor = float4(0, 0, 0, 0);
     ComparisonFunc = uint(LESS /* 2 */);
+};
+RasterizerState SolidMode
+{
+    FillMode = uint(SOLID /* 3 */);
 };
 
 //
@@ -657,6 +661,7 @@ fxgroup
                 // Approximately 288 instruction slots used
                             
             };
+            RasterizerState = SolidMode;
         }
 
     }

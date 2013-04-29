@@ -24,6 +24,7 @@
 #include "DebugConsole.h"
 #include "ScriptComponent.h"
 #include "ScriptExports.h"
+#include "ChunkManager.h"
 
 using namespace GLib;
 
@@ -86,6 +87,50 @@ void Game::Init()
 	texture = GlobalApp::GetGraphics()->LoadTexture("swag.bmp");
 }
 
+void Game::Update(GLib::Input* pInput, float dt)
+{
+	GetGraphics()->Update(pInput, dt);
+
+	if(pInput->KeyPressed('R'))
+		ReloadActors();
+
+	mWorld->Update(dt);
+	mActorManager->Update(dt);
+	mChunkManager->Update(dt);
+
+	if(pInput->KeyPressed(VK_F1))
+		mDrawDebug = !mDrawDebug;
+}
+	
+void Game::Draw(GLib::Graphics* pGraphics)
+{
+	// Clear the render target and depth/stencil.
+	pGraphics->ClearScene();
+
+	mWorld->Draw(pGraphics);
+	//mActorManager->Draw(pGraphics);
+	mChunkManager->Draw(pGraphics);
+
+	//pGraphics->DrawBillboards();
+
+	if(mDrawDebug)
+	{
+		char buffer[244];
+		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", GLib::GlobalApp::GetInput()->MousePosition().x, GLib::GlobalApp::GetInput()->MousePosition().y, GetCurrentFps());
+		pGraphics->DrawText(buffer, GLib::GlobalApp::GetClientWidth()-100, 400, 20, GLib::ColorRGBA(255, 255, 255, 255));
+	}
+
+	pGraphics->DrawBoundingBox(XMFLOAT3(0, 70, 0), 6, 6, 6, Colors::Red, false, 1.0f);
+
+	// Present the backbuffer.
+	pGraphics->Present();
+
+	// Unbind the SRVs from the pipeline so they can be used as DSVs instead.
+	ID3D11ShaderResourceView *const nullSRV[4] = {NULL, NULL, NULL, NULL};
+	pGraphics->GetContext()->PSSetShaderResources(0, 4, nullSRV);
+	Effects::GetBasicFX()->Apply(GLib::GlobalApp::GetD3DContext());
+}
+
 void Game::ExecuteLuaScripts()
 {
 	// Execute all the different lua files of interest here.
@@ -134,7 +179,7 @@ void Game::InitWorld()
 {
 	// Add a camera.
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
-	camera->SetPosition(XMFLOAT3(120, 300, 120));
+	camera->SetPosition(XMFLOAT3(120, 200, 0));
 	camera->SetMovementSpeed(0.2f);
 	camera->SetRotateButton(VK_MBUTTON);
 	GetGraphics()->SetCamera(camera);
@@ -145,56 +190,13 @@ void Game::InitWorld()
 	mWorld = new World();
 	mWorld->Init(GetGraphics());
 
+	mChunkManager = new ChunkManager;
+
+
 	// Connect the graphics light list.
 	GLib::GlobalApp::GetGraphics()->SetLightList(mWorld->GetLights());
 }
 
-void Game::Update(GLib::Input* pInput, float dt)
-{
-	GetGraphics()->Update(pInput, dt);
-
-	if(pInput->KeyPressed('R'))
-		ReloadActors();
-
-	mWorld->Update(dt);
-	mActorManager->Update(dt);
-
-	if(pInput->KeyPressed(VK_F1))
-		mDrawDebug = !mDrawDebug;
-
-	/*if(pInput->KeyReleased('F')) {
-		float width = GetSystemMetrics(SM_CXSCREEN);
-		float height = GetSystemMetrics(SM_CYSCREEN);
-
-		ResizeWindow(width, height);
-	}*/
-}
-	
-void Game::Draw(GLib::Graphics* pGraphics)
-{
-	// Clear the render target and depth/stencil.
-	pGraphics->ClearScene();
-
-	mWorld->Draw(pGraphics);
-	mActorManager->Draw(pGraphics);
-
-	pGraphics->DrawBillboards();
-
-	if(mDrawDebug)
-	{
-		char buffer[244];
-		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", GLib::GlobalApp::GetInput()->MousePosition().x, GLib::GlobalApp::GetInput()->MousePosition().y, GetCurrentFps());
-		pGraphics->DrawText(buffer, GLib::GlobalApp::GetClientWidth()-100, 400, 20, GLib::ColorRGBA(255, 255, 255, 255));
-	}
-
-	// Present the backbuffer.
-	pGraphics->Present();
-
-	// Unbind the SRVs from the pipeline so they can be used as DSVs instead.
-	ID3D11ShaderResourceView *const nullSRV[4] = {NULL, NULL, NULL, NULL};
-	pGraphics->GetContext()->PSSetShaderResources(0, 4, nullSRV);
-	Effects::GetBasicFX()->Apply(GLib::GlobalApp::GetD3DContext());
-}
 
 //! Called when the window gets resized.
 void Game::OnResize(int width, int height)

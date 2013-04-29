@@ -34,7 +34,7 @@ cbuffer cbSkinned
 }
 
 //
-// 7 local object(s)
+// 8 local object(s)
 //
 Texture2D gTexture;
 Texture2D gNormalMap;
@@ -66,6 +66,10 @@ RasterizerState Depth
     DepthBias = uint(0x000186a0);
     DepthBiasClamp = float(0);
     SlopeScaledDepthBias = float(1);
+};
+RasterizerState SolidMode
+{
+    FillMode = uint(SOLID /* 3 */);
 };
 
 //
@@ -2383,6 +2387,7 @@ fxgroup
             };
             GeometryShader = NULL;
             PixelShader = NULL;
+            RasterizerState = SolidMode;
         }
 
     }

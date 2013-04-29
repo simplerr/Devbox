@@ -60,4 +60,27 @@ namespace GLib
 		int		 Id;
 		BillboardManager* Manager;
 	};
+
+	struct VoxelVertex
+	{
+		VoxelVertex() {}
+		VoxelVertex(float x, float y, float z, float nx, float ny, float nz)
+			: Position(XMFLOAT3(x, y, z)), Normal(XMFLOAT3(nx, ny, nz)) {}
+		VoxelVertex(XMFLOAT3 pos, XMFLOAT3 normal)
+			: Position(pos), Normal(normal) {}
+
+		XMFLOAT3 Position;
+		XMFLOAT3 Normal;
+	};
+
+	struct BoundingBoxVertex
+	{
+		BoundingBoxVertex() {}
+		BoundingBoxVertex(float x, float y, float z)
+			: Position(XMFLOAT3(x, y, z)) {}
+		BoundingBoxVertex(XMFLOAT3 pos)
+			: Position(pos) {}
+
+		XMFLOAT3 Position;
+	};
 }

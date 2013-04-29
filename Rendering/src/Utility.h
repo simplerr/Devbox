@@ -95,7 +95,7 @@ namespace GLib
 	typedef std::vector<Light*> LightList;
 
 	//! Returns the inverse transpose.
-	XMMATRIX InverseTranspose(CXMMATRIX M);
+	XMMATRIX GLIB_API InverseTranspose(CXMMATRIX M);
 
 	//! Transform an axis aligned box by an angle preserving transform. Custom version of the XNA::TransformAxisAlignedBox.
 	VOID TransformAxisAlignedBoxCustom(XNA::AxisAlignedBox* pOut, const XNA::AxisAlignedBox* pIn, FXMVECTOR Scale, FXMVECTOR Rotation, FXMVECTOR Translation);

@@ -170,6 +170,11 @@ float4 PS(VertexOut pin) : SV_Target
     return litColor;
 }
 
+RasterizerState SolidMode
+{
+	FillMode = Solid;
+};
+
 technique11 TerrainTech
 {
     pass P0
@@ -177,5 +182,7 @@ technique11 TerrainTech
         SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PS()));
+
+		SetRasterizerState(SolidMode);
     }
 }

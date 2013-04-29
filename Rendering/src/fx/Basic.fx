@@ -343,6 +343,11 @@ RasterizerState Depth
 	SlopeScaledDepthBias = 1.0f;
 };
 
+RasterizerState SolidMode
+{
+	FillMode = Solid;
+};
+
 //! Shadow map technique.
 //! Used when rendering to the shadow map.
 technique11 ShadowMapTech
@@ -352,6 +357,6 @@ technique11 ShadowMapTech
         SetVertexShader(CompileShader( vs_5_0, ShadowVS()));
 		SetGeometryShader(NULL);
         SetPixelShader(NULL);
-		//SetRasterizerState(Depth);
+		SetRasterizerState(SolidMode);
     }
 }

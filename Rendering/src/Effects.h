@@ -6,6 +6,10 @@
 #include <vector>
 #include "Utility.h"
 #include "Light.h"
+#include "defs.h"
+
+class VoxelEffect;
+class BoundingBoxEffect;
 
 using namespace std;
 
@@ -51,6 +55,8 @@ namespace GLib
 		static TerrainEffect*	TerrainFX;
 		static ScreenEffect*	ScreenFX;
 		static ParticleEffect*	ParticleFX;
+		static VoxelEffect*		VoxelFX;
+		static BoundingBoxEffect* BoundingBoxFx;
 	};
 
 	#pragma endregion

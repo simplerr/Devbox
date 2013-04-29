@@ -22,6 +22,7 @@ class ControlManager;
 class GameState;
 class ActorManager;
 class ActorFactory;
+class ChunkManager;
 
 #pragma endregion
 
@@ -50,4 +51,5 @@ private:
 	GLib::Texture2D* texture;
 	ActorManager* mActorManager;
 	ActorFactory* mActorFactory;
+	ChunkManager* mChunkManager;
 };

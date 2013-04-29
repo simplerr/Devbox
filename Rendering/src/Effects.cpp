@@ -5,6 +5,8 @@
 #include "Utility.h"
 #include "Light.h"
 #include "Graphics.h"
+#include "VoxelEffect.h"
+#include "BoundingBoxEffect.h"
 
 //! Graphics Library namespace.
 namespace GLib
@@ -19,6 +21,9 @@ ShadowMapEffect*	Effects::BuildShadowMapFX = nullptr;
 TerrainEffect*		Effects::TerrainFX		= nullptr;
 ScreenEffect*		Effects::ScreenFX		= nullptr;
 ParticleEffect*		Effects::ParticleFX		= nullptr;
+VoxelEffect*		Effects::VoxelFX		= nullptr;				
+BoundingBoxEffect*	Effects::BoundingBoxFx	= nullptr;				
+
 
 #pragma region Code for the static effect handler Effects.
 
@@ -65,6 +70,14 @@ void Effects::InitAll(ID3D11Device* pDevice)
 	ScreenFX = new ScreenEffect(pDevice);
 	ScreenFX->CreateInputLayout(pDevice);
 	ScreenFX->Init();
+
+	VoxelFX = new VoxelEffect(pDevice);
+	VoxelFX->CreateInputLayout(pDevice);
+	VoxelFX->Init();
+
+	BoundingBoxFx = new BoundingBoxEffect(pDevice);
+	BoundingBoxFx->CreateInputLayout(pDevice);
+	BoundingBoxFx->Init();
 }
 
 //! Cleans up all effects.
@@ -77,6 +90,7 @@ void Effects::DestroyAll()
 	delete BuildShadowMapFX;
 	delete TerrainFX;
 	delete ScreenFX;
+	delete VoxelFX;
 }
 
 BasicEffect* Effects::GetBasicFX()

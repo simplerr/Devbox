@@ -4,6 +4,7 @@
 #include <vector>
 #include "xnacollision.h"
 #include "Vertex.h"
+#include "defs.h"
 
 using namespace std;
 using namespace XNA;
@@ -17,7 +18,7 @@ namespace GLib
 	//!
 	//	Contains a vertex and index buffer.
 	//!
-	class Primitive
+	class GLIB_API Primitive
 	{
 	public:
 		template <class VertexType>
@@ -29,7 +30,32 @@ namespace GLib
 
 		template <class VertexType>
 		void SetVertices(ID3D11Device* device, vector<VertexType> vertices, int size);
+
+		template <class VertexType>
+		void SetVertices(ID3D11Device* pDevice, VertexType* vertices, int size)
+		{
+			// Fill out the D3D11_BUFFER_DESC struct.
+			D3D11_BUFFER_DESC vbd;
+			vbd.Usage = D3D11_USAGE_DYNAMIC;
+			vbd.ByteWidth = sizeof(VertexType) * size;
+			vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			vbd.MiscFlags = 0;
+
+			// Set the init data.
+			D3D11_SUBRESOURCE_DATA initData;
+			initData.pSysMem = vertices;
+
+			// Create the vertex buffer.
+			HRESULT hr = pDevice->CreateBuffer(&vbd, &initData, &mVertexBuffer);
+
+			mNumVertices = size;
+		}
+
 		void SetIndices(ID3D11Device* device, vector<UINT> indices);
+
+		void SetIndices(ID3D11Device* device, UINT* indices, int size);
+
 		ID3D11Buffer* GetVertices();
 		ID3D11Buffer* GetIndices();
 		int NumVertices();
@@ -88,6 +114,6 @@ namespace GLib
 		mNumVertices = size;
 
 		// Compute the AABB.
-		XNA::ComputeBoundingAxisAlignedBoxFromPoints(&mBoundingBox, size, &vertices[0].Pos, sizeof(VertexType));
+		//XNA::ComputeBoundingAxisAlignedBoxFromPoints(&mBoundingBox, size, &vertices[0].Pos, sizeof(VertexType));
 	}
 }

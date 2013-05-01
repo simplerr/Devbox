@@ -69,7 +69,7 @@ void Chunk::CreateMesh()
 					float X = x - CHUNK_SIZE/2;
 					float Y = y - CHUNK_SIZE/2;
 					float Z = z - CHUNK_SIZE/2;
-					AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+					if(rand() % 40 == 0)AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
 				else
 				{
@@ -135,25 +135,15 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 {
 	BlockIndex index = {-1, -1, -1};
 
+	// HACK TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Add a direction scalar to the position
+	// The if statements below only work at the edges!!!
+	//position.y -= 0.1f;
+	//position.x -= 0.1f;
+
 	XMFLOAT3 localPosition = position - mPosition;
 
 	float size = CHUNK_SIZE * VOXEL_SIZE;
-	float elipson = 0.1f; // Allowed difference [NOTE].
-
-	if(localPosition.x <= 0)
-		localPosition.x += elipson;
-	else if(localPosition.x >= mPosition.x + size)
-		localPosition.x -= elipson;
-
-	if(localPosition.y <= 0)
-		localPosition.y += elipson;
-	else if(localPosition.y >= mPosition.y + size)
-		localPosition.y -= elipson;
-
-	if(localPosition.z <= 0)
-		localPosition.z += elipson;
-	else if(localPosition.z >= mPosition.z + size)
-		localPosition.z -= elipson;
 
 	// Is the position outside the Chunk?
 	// It shouldn't be since the ChunkManager::PositionToChunkId() should be used first.
@@ -171,18 +161,10 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 	return index;
 }
 
-bool Chunk::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)
+bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
-	// Broadphase
-	XNA::AxisAlignedBox box;
-	float size = CHUNK_SIZE * VOXEL_SIZE;
-	float localCenter = size / 2;
-	box.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
-	box.Extents = XMFLOAT3(size/2, size/2, size/2);
-	if(!GLibIntersectRayAxisAlignedBox(origin, direction, &box, &pDist))
-		return false;
-
 	bool intersect = false;
+	pDist = 9999999;
 	for(UINT i = 0; i < 36*mBlockCount/3; ++i)
 	{
 		// Indices for this triangle.
@@ -199,12 +181,28 @@ bool Chunk::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)
 		direction = XMVector3Normalize(direction);
 		if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
 		{
-			pDist = dist;
+			if(dist < pDist)
+				pDist = dist;
+
 			intersect = true;
 		}
 	}
 
 	return intersect;
+}
+
+// Broadphase
+bool Chunk::RayIntersectBox(XMVECTOR origin, XMVECTOR direction, float& pDist)
+{
+	XNA::AxisAlignedBox box;
+	float size = CHUNK_SIZE * VOXEL_SIZE;
+	float localCenter = size / 2;
+	box.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
+	box.Extents = XMFLOAT3(size/2, size/2, size/2);
+	if(GLibIntersectRayAxisAlignedBox(origin, direction, &box, &pDist))
+		return true;
+	else
+		return false;
 }
 
 XMFLOAT3 Chunk::GetPosition()

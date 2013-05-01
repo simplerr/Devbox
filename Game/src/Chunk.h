@@ -67,7 +67,8 @@ public:
 	void Rebuild();
 
 	void Render(GLib::Graphics* pGraphics);
-	bool RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist);
+	bool RayIntersectBox(XMVECTOR origin, XMVECTOR direction, float& pDist);
+	bool RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist);
 
 	void SetColor(XMFLOAT4 color);
 	void SetBlockActive(BlockIndex blockIndex, bool active);

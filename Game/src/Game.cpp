@@ -183,7 +183,7 @@ void Game::InitWorld()
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
 	camera->SetPosition(XMFLOAT3(120, 200, 0));
 	camera->SetMovementSpeed(0.2f);
-	camera->SetRotateButton(VK_MBUTTON);
+	//camera->SetRotateButton(VK_MBUTTON);
 	GetGraphics()->SetCamera(camera);
 
 	// Set the fog color.

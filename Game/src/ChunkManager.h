@@ -9,6 +9,18 @@ namespace GLib {
 
 class Chunk;
 
+struct ChunkIntersection
+{
+	ChunkIntersection(Chunk* pChunk, float dist)
+	{
+		chunk = pChunk;
+		distance = dist;
+	}
+
+	Chunk* chunk;
+	float distance;
+};
+
 struct Voxel
 {
 	Voxel(float x, float y, float z)

@@ -7,6 +7,11 @@
 #include "Input.h"
 #include "Camera.h"
 
+bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
+{
+	return a.distance < b.distance;
+}
+
 ChunkManager::ChunkManager()
 {
 	mLastChunkId = 0;
@@ -44,22 +49,47 @@ void ChunkManager::Update(float dt)
 	// Testing ray interesecttion and creating block.
 	if(input->KeyPressed(VK_LBUTTON))
 	{
+		GLib::Ray ray = GLib::GlobalApp::GetCamera()->GetWorldPickingRay();
+		XMVECTOR origin = XMLoadFloat3(&ray.origin);
+		XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
+
+		// Intersected chunks sorted by distance.
+		vector<ChunkIntersection> intersectedChunks;
+
+		// Broadphase just testing AABBs.
+		float dist = 99999;
 		for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 		{
-			GLib::Ray ray = GLib::GlobalApp::GetCamera()->GetWorldPickingRay();
-			XMVECTOR origin = XMLoadFloat3(&ray.origin);
-			XMVECTOR dir = XMLoadFloat3(&ray.direction);
+			if((*iter).second->RayIntersectBox(origin, dir, dist))
+				intersectedChunks.push_back(ChunkIntersection((*iter).second, dist));
+		}
+
+		// Sort the intersection array.
+		std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
+
+		for(int i = 0; i < intersectedChunks.size(); i++)
+		{
 			float dist;
-			if((*iter).second->RayIntersect(origin, dir, dist))
+			if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
 			{
 				XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction;
-				BlockIndex blockIndex = (*iter).second->PositionToBlockId(intersectPosition);
+				float add = 0.01f;
+				intersectPosition.x += ray.direction.x < 0 ? -add : add;
+				intersectPosition.y += ray.direction.y < 0 ? -add : add;
+				intersectPosition.z += ray.direction.z < 0 ? -add : add;
+				BlockIndex blockIndex = intersectedChunks[i].chunk->PositionToBlockId(intersectPosition);
 
-				(*iter).second->SetBlockActive(blockIndex, false);
+				intersectedChunks[i].chunk->SetBlockActive(blockIndex, false);
 
+				// Break the loop since this was the closest chunk.
+				// If the mesh ray intersection returns false the next chunk
+				// in the intersectedChunks list is tested.
 				break;
 			}
 		}
+
+		
+		
 	}
 
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)

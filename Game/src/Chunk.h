@@ -22,11 +22,17 @@ enum BlockType
 	BlockType_NumTypes,
 };
 
+// Returned from Chunk::PositionToBlockId().
+struct BlockIndex
+{
+	int x, y, z;
+};
+
 class Block
 {
 public:
 	Block() {
-		mActive = true;
+		mActive = (rand() % 100 == 0 ? true : true);
 	}
 
 	~Block() {};
@@ -64,8 +70,14 @@ public:
 	bool RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist);
 
 	void SetColor(XMFLOAT4 color);
+	void SetBlockActive(BlockIndex blockIndex, bool active);
+	void SetRebuildFlag();
 
 	XMFLOAT3 GetPosition();
+	bool GetRebuildFlag();
+
+	// Returns the index to the block that position is inside.
+	BlockIndex PositionToBlockId(XMFLOAT3 position);
 
 	static const int CHUNK_SIZE = 16;
 	static const int VOXEL_SIZE = 4;
@@ -74,6 +86,7 @@ private:
 	GLib::Primitive* mPrimitive;
 	XMFLOAT3 mPosition;
 	int mBlockCount;
+	bool mRebuildFlag;
 
 	XMFLOAT4 mColor;
 

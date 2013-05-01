@@ -41,4 +41,5 @@ private:
 
 private:
 	map<ChunkId, Chunk*> mChunkMap;
+	XMFLOAT3 mTestBox;
 };

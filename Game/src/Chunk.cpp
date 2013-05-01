@@ -30,7 +30,7 @@ Chunk::Chunk(float x, float y, float z)
 	mPosition = XMFLOAT3(x, y, z);
 
 	mBlockCount = 0;
-
+	mRebuildFlag = false;
 	mPrimitive = nullptr;
 
 	mColor = Colors::LightSteelBlue;
@@ -69,8 +69,7 @@ void Chunk::CreateMesh()
 					float X = x - CHUNK_SIZE/2;
 					float Y = y - CHUNK_SIZE/2;
 					float Z = z - CHUNK_SIZE/2;
-					//if(rand() % 15 == 0)
-						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+					AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
 				else
 				{
@@ -103,6 +102,8 @@ void Chunk::Rebuild()
 	mBlockCount = 0;
 	CreateMesh();
 	BuildMeshPrimitive();
+
+	mRebuildFlag = false;
 }
 
 void Chunk::Render(GLib::Graphics* pGraphics)
@@ -130,16 +131,55 @@ void Chunk::Render(GLib::Graphics* pGraphics)
 	pGraphics->DrawBoundingBox(XMFLOAT3(mPosition.x, mPosition.y, mPosition.z), 3, 3, 3, Colors::Black, false, 1.0f);
 }
 
+BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
+{
+	BlockIndex index = {-1, -1, -1};
+
+	XMFLOAT3 localPosition = position - mPosition;
+
+	float size = CHUNK_SIZE * VOXEL_SIZE;
+	float elipson = 0.1f; // Allowed difference [NOTE].
+
+	if(localPosition.x <= 0)
+		localPosition.x += elipson;
+	else if(localPosition.x >= mPosition.x + size)
+		localPosition.x -= elipson;
+
+	if(localPosition.y <= 0)
+		localPosition.y += elipson;
+	else if(localPosition.y >= mPosition.y + size)
+		localPosition.y -= elipson;
+
+	if(localPosition.z <= 0)
+		localPosition.z += elipson;
+	else if(localPosition.z >= mPosition.z + size)
+		localPosition.z -= elipson;
+
+	// Is the position outside the Chunk?
+	// It shouldn't be since the ChunkManager::PositionToChunkId() should be used first.
+	if(localPosition.x < 0 || localPosition.x > mPosition.x + size || localPosition.y < 0 || localPosition.y > mPosition.y + size || localPosition.z < 0 || localPosition.z > mPosition.z + size)
+	{
+		GLIB_ERROR("Position outside chunk!");
+		return index;
+	}
+
+	// Transform to block position.
+	index.x = localPosition.x / VOXEL_SIZE;
+	index.y = localPosition.y / VOXEL_SIZE;
+	index.z = localPosition.z / VOXEL_SIZE;
+
+	return index;
+}
+
 bool Chunk::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
 	// Broadphase
-	float dist;
 	XNA::AxisAlignedBox box;
 	float size = CHUNK_SIZE * VOXEL_SIZE;
 	float localCenter = size / 2;
 	box.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
 	box.Extents = XMFLOAT3(size/2, size/2, size/2);
-	if(!GLibIntersectRayAxisAlignedBox(origin, direction, &box, &dist))
+	if(!GLibIntersectRayAxisAlignedBox(origin, direction, &box, &pDist))
 		return false;
 
 	bool intersect = false;
@@ -159,8 +199,7 @@ bool Chunk::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)
 		direction = XMVector3Normalize(direction);
 		if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
 		{
-			if(dist < pDist)
-				pDist = dist;
+			pDist = dist;
 			intersect = true;
 		}
 	}
@@ -173,9 +212,34 @@ XMFLOAT3 Chunk::GetPosition()
 	return mPosition;
 }
 
+bool Chunk::GetRebuildFlag()
+{
+	return mRebuildFlag;
+}
+
 void Chunk::SetColor(XMFLOAT4 color)
 {
 	mColor = color;
+}
+
+void Chunk::SetRebuildFlag()
+{
+	mRebuildFlag = true;
+}
+
+void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)
+{
+	if(blockIndex.x >= 0 && blockIndex.x < CHUNK_SIZE && blockIndex.y >= 0 && blockIndex.y < CHUNK_SIZE && blockIndex.z >= 0 && blockIndex.z < CHUNK_SIZE)
+	{
+		if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z].IsActive() != active)
+			SetRebuildFlag();
+
+		mBlocks[blockIndex.x][blockIndex.y][blockIndex.z].SetActive(active);
+	}
+	else
+	{
+		GLIB_ERROR("Invalid block index");
+	}
 }
 
 // Adds a cube to the vertex buffer.

@@ -193,8 +193,8 @@ void D3DCore::OnResize(int width, int height)
 	md3dImmediateContext->RSSetViewports(1, &mScreenViewport);
 
 	// [HACK]
-	mDimensionRatios.right = (float)1600 / width;
-	mDimensionRatios.bottom = (float)900 / height;
+	mDimensionRatios.right = (float)1400 / width;
+	mDimensionRatios.bottom = (float)1000 / height;
 }
 
 //! Calls the swapchain Present() function that swaps the front- and backbuffer.

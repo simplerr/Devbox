@@ -212,7 +212,7 @@ void Input::Poll()
 
 Ray Input::GetWorldPickingRay(Camera* pCamera)
 {
-	XMFLOAT3 mousePos = MousePosition();
+	XMFLOAT3 mousePos = MousePosition() + XMFLOAT3(16, 39, 0);
 	XMMATRIX proj = XMLoadFloat4x4(&pCamera->GetProjectionMatrix());
 
 	// Compute the ray in view space.

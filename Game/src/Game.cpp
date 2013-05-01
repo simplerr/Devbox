@@ -113,6 +113,8 @@ void Game::Draw(GLib::Graphics* pGraphics)
 
 	//pGraphics->DrawBillboards();
 
+	pGraphics->DrawScreenTexture("swag.bmp", 700, 500, 10, 10);
+
 	if(mDrawDebug)
 	{
 		char buffer[244];

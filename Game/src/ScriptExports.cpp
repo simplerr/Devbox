@@ -72,8 +72,7 @@ void ScriptExports::DrawAABB(float x, float y, float z, float extents, float alp
 	XNA::AxisAlignedBox box;
 	box.Center = XMFLOAT3(x, y, z);
 	box.Extents = XMFLOAT3(extents, extents, extents);
-	auto material = GLib::Material(GLib::Colors::Green);
-	GLib::GlobalApp::GetGraphics()->DrawBoundingBox(&box, XMMatrixIdentity(), material, alpha);
+	GLib::GlobalApp::GetGraphics()->DrawBoundingBox(&box, GLib::Colors::Green, false, alpha);
 }
 
 LuaPlus::LuaObject ScriptExports::GetCameraPosition()

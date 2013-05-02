@@ -281,17 +281,27 @@ void Graphics::DrawScreenTexture(string texture, float x, float y, float width, 
 	DrawScreenTexture(LoadTexture(texture), x, y, width, height);
 }
 
-void Graphics::DrawBoundingBox(AxisAlignedBox* aabb, CXMMATRIX worldMatrix, Material material, float transparency)
+void Graphics::DrawBoundingBox(AxisAlignedBox* aabb, XMFLOAT4 color, bool wireframe, float transparency)
 {
 	// Calculate the scaling matrix.
-	XMMATRIX scaleMatrix = XMMatrixScaling(aabb->Extents.x, aabb->Extents.y, aabb->Extents.z);
+	XMMATRIX scaleMatrix = XMMatrixScaling(aabb->Extents.x*2, aabb->Extents.y*2, aabb->Extents.z*2);
 
 	// Ignore the rotation.
 	XMMATRIX world = scaleMatrix * XMMatrixTranslation(aabb->Center.x, aabb->Center.y, aabb->Center.z);
 
 	// Draw the primitive.
-	material.diffuse.w = transparency;
-	DrawPrimitive(mAABB, world, 0, 0, material, Effects::BasicFX);
+	color.w = transparency;
+
+	// Set the world * view * proj matrix.
+	XMMATRIX view = XMLoadFloat4x4(&mCamera->GetViewMatrix());
+	XMMATRIX proj = XMLoadFloat4x4(&mCamera->GetProjectionMatrix());
+
+	Effects::BoundingBoxFx->SetWorldViewProj(world * view * proj);
+	Effects::BoundingBoxFx->SetColor(color);
+
+	Effects::BoundingBoxFx->Apply(GetContext(), wireframe);
+
+	mAABB->Draw<BoundingBoxVertex>(GetContext());
 }
 
 void Graphics::DrawBoundingBox(XMFLOAT3 position, float width, float height, float depth, XMFLOAT4 color, bool wireframe, float transparency)

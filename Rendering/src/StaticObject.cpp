@@ -42,7 +42,7 @@ namespace GLib
 		mModel->Draw(pGraphics, GetWorldMatrix());
 
 		if(IsBoundingBoxVisible())
-			pGraphics->DrawBoundingBox(&GetBoundingBox(), GetWorldMatrix(), Material(Colors::Blue));
+			pGraphics->DrawBoundingBox(&GetBoundingBox(), Colors::Blue);
 	}
 
 	//! Returns true if the ray hits the mesh, triangle level check.

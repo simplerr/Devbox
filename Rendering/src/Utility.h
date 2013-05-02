@@ -39,6 +39,7 @@ namespace GLib
 
 	BOOL GLIB_API GLibIntersectRayTriangle( FXMVECTOR Origin, FXMVECTOR Direction, FXMVECTOR V0, CXMVECTOR V1, CXMVECTOR V2, FLOAT* pDist );
 	BOOL GLIB_API GLibIntersectRayAxisAlignedBox( FXMVECTOR Origin, FXMVECTOR Direction, const XNA::AxisAlignedBox* pVolume, FLOAT* pDist );
+	INT GLIB_API GLibIntersectAxisAlignedBoxFrustum( const XNA::AxisAlignedBox* pVolumeA, const XNA::Frustum* pVolumeB );
 
 	//! Takes a "0 0 0 255" string and splits it up to a UIN32 color value.
 	UINT32 StripRGBA(string colors);

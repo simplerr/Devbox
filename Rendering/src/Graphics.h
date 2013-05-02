@@ -69,7 +69,7 @@ namespace GLib
 		void DrawBillboards();
 		void DrawScreenTexture(Texture2D* texture, float x, float y, float width, float height);
 		void DrawScreenTexture(string texture, float x, float y, float width, float height);
-		void DrawBoundingBox(AxisAlignedBox* aabb, CXMMATRIX worldMatrix, Material material, float transparency = 0.4f);
+		void DrawBoundingBox(AxisAlignedBox* aabb, XMFLOAT4 color, bool wireframe = false, float transparency = 0.4f);
 		void DrawBoundingBox(XMFLOAT3 position, float width, float height, float depth, XMFLOAT4 color = Colors::Green, bool wireframe = false, float transparency = 0.4f);
 		void DrawText(string text, int x, int y, int size,  UINT32 color = 0xff000000, string fontFamily = "Arial");
 		void ActiveShadowMap();

@@ -10,6 +10,7 @@
 #include "xnacollision.h"
 #include "Utility.h"
 #include <xnamath.h>
+#include "ChunkManager.h"
 
 using namespace GLib;
 
@@ -69,7 +70,8 @@ void Chunk::CreateMesh()
 					float X = x - CHUNK_SIZE/2;
 					float Y = y - CHUNK_SIZE/2;
 					float Z = z - CHUNK_SIZE/2;
-					if(rand() % 40 == 0)AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+					if(rand() % 40 == 0)
+						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
 				else
 				{
@@ -85,8 +87,8 @@ void Chunk::BuildMeshPrimitive()
 {
 	// Only rebuild mBlockCount blocks.
 	// They are located at [0] -> [(mBlockCount-1) * 24 or 36] in the vertex and index array.
-	mPrimitive->SetVertices(GLib::GlobalApp::GetD3DDevice(), mVertices, 24*mBlockCount);
-	mPrimitive->SetIndices(GLib::GlobalApp::GetD3DDevice(), mIndices, 36*mBlockCount);
+	mPrimitive->SetVertices(GLib::GlobalApp::GetD3DDevice(), ChunkManager::TempChunkVertices, 24*mBlockCount);
+	mPrimitive->SetIndices(GLib::GlobalApp::GetD3DDevice(), ChunkManager::TempChunkIndices, 36*mBlockCount);
 }
 
 void Chunk::Rebuild()
@@ -126,7 +128,7 @@ void Chunk::Render(GLib::Graphics* pGraphics)
 	float size = CHUNK_SIZE * VOXEL_SIZE;
 	float localCenter = size / 2;
 	
-	pGraphics->DrawBoundingBox(XMFLOAT3(mPosition.x + localCenter, mPosition.y + localCenter, mPosition.z + localCenter), size, size, size, Colors::Green, true, 1.0f);
+	pGraphics->DrawBoundingBox(&GetAxisAlignedBox(), Colors::Red, true, 1.0f);
 
 	pGraphics->DrawBoundingBox(XMFLOAT3(mPosition.x, mPosition.y, mPosition.z), 3, 3, 3, Colors::Black, false, 1.0f);
 }
@@ -164,29 +166,29 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
 	bool intersect = false;
-	pDist = 9999999;
-	for(UINT i = 0; i < 36*mBlockCount/3; ++i)
-	{
-		// Indices for this triangle.
-		UINT i0 = mIndices[i*3+0];
-		UINT i1 = mIndices[i*3+1];
-		UINT i2 = mIndices[i*3+2];
+	//pDist = 9999999;
+	//for(UINT i = 0; i < 36*mBlockCount/3; ++i)
+	//{
+	//	// Indices for this triangle.
+	//	UINT i0 = mIndices[i*3+0];
+	//	UINT i1 = mIndices[i*3+1];
+	//	UINT i2 = mIndices[i*3+2];
 
-		// Vertices for this triangle.
-		XMVECTOR v0 = XMLoadFloat3(&mVertices[i0].Position);
-		XMVECTOR v1 = XMLoadFloat3(&mVertices[i1].Position);
-		XMVECTOR v2 = XMLoadFloat3(&mVertices[i2].Position);
+	//	// Vertices for this triangle.
+	//	XMVECTOR v0 = XMLoadFloat3(&mVertices[i0].Position);
+	//	XMVECTOR v1 = XMLoadFloat3(&mVertices[i1].Position);
+	//	XMVECTOR v2 = XMLoadFloat3(&mVertices[i2].Position);
 
-		float dist = 0.0f;
-		direction = XMVector3Normalize(direction);
-		if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
-		{
-			if(dist < pDist)
-				pDist = dist;
+	//	float dist = 0.0f;
+	//	direction = XMVector3Normalize(direction);
+	//	if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
+	//	{
+	//		if(dist < pDist)
+	//			pDist = dist;
 
-			intersect = true;
-		}
-	}
+	//		intersect = true;
+	//	}
+	//}
 
 	return intersect;
 }
@@ -194,15 +196,22 @@ bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 // Broadphase
 bool Chunk::RayIntersectBox(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
-	XNA::AxisAlignedBox box;
-	float size = CHUNK_SIZE * VOXEL_SIZE;
-	float localCenter = size / 2;
-	box.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
-	box.Extents = XMFLOAT3(size/2, size/2, size/2);
-	if(GLibIntersectRayAxisAlignedBox(origin, direction, &box, &pDist))
+	XNA::AxisAlignedBox aabb = GetAxisAlignedBox();
+	if(GLibIntersectRayAxisAlignedBox(origin, direction, &aabb, &pDist))
 		return true;
 	else
 		return false;
+}
+
+XNA::AxisAlignedBox Chunk::GetAxisAlignedBox()
+{
+	XNA::AxisAlignedBox aabb;
+	float size = CHUNK_SIZE * VOXEL_SIZE;
+	float localCenter = size / 2;
+	aabb.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
+	aabb.Extents = XMFLOAT3(size/2, size/2, size/2);
+
+	return aabb;
 }
 
 XMFLOAT3 Chunk::GetPosition()
@@ -255,64 +264,64 @@ void Chunk::AddCube(int x, int y, int z)
 		return;
 
 	// Fill in the front face vertex data.
-	mVertices[n*24 + 0] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
-	mVertices[n*24 + 1] = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
-	mVertices[n*24 + 2] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
-	mVertices[n*24 + 3] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 0] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 1] = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 2] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 3] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
 
 	// Fill in the back face vertex data.
-	mVertices[n*24 + 4] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
-	mVertices[n*24 + 5] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
-	mVertices[n*24 + 6] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
-	mVertices[n*24 + 7] = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 4] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 5] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 6] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 7] = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
 
 	// Fill in the top face vertex data.
-	mVertices[n*24 + 8]  = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
-	mVertices[n*24 + 9]  = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
-	mVertices[n*24 + 10] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
-	mVertices[n*24 + 11] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 8]  = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 9]  = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 10] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 11] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
 
 	// Fill in the bottom face vertex data.
-	mVertices[n*24 + 12] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
-	mVertices[n*24 + 13] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
-	mVertices[n*24 + 14] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
-	mVertices[n*24 + 15] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 12] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 13] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 14] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 15] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
 
 	// Fill in the left face vertex data.
-	mVertices[n*24 + 16] = VoxelVertex(x -w2, y -h2, z +d2, -1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 17] = VoxelVertex(x -w2, y +h2, z +d2, -1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 18] = VoxelVertex(x -w2, y +h2, z -d2, -1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 19] = VoxelVertex(x -w2, y -h2, z -d2, -1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 16] = VoxelVertex(x -w2, y -h2, z +d2, -1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 17] = VoxelVertex(x -w2, y +h2, z +d2, -1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 18] = VoxelVertex(x -w2, y +h2, z -d2, -1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 19] = VoxelVertex(x -w2, y -h2, z -d2, -1.0f, 0.0f, 0.0f);
 
 	// Fill in the right face vertex data.
-	mVertices[n*24 + 20] = VoxelVertex(x +w2, y -h2, z -d2, 1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 21] = VoxelVertex(x +w2, y +h2, z -d2, 1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 22] = VoxelVertex(x +w2, y +h2, z +d2, 1.0f, 0.0f, 0.0f);
-	mVertices[n*24 + 23] = VoxelVertex(x +w2, y -h2, z +d2, 1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 20] = VoxelVertex(x +w2, y -h2, z -d2, 1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 21] = VoxelVertex(x +w2, y +h2, z -d2, 1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 22] = VoxelVertex(x +w2, y +h2, z +d2, 1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 23] = VoxelVertex(x +w2, y -h2, z +d2, 1.0f, 0.0f, 0.0f);
 
 	// Fill in the front face index data
-	mIndices[n*36 + 0] = n*24 + 0; mIndices[n*36 + 1] = n*24 + 1; mIndices[n*36 + 2] = n*24 + 2;
-	mIndices[n*36 + 3] = n*24 + 0; mIndices[n*36 + 4] = n*24 + 2; mIndices[n*36 + 5] = n*24 + 3;
+	ChunkManager::TempChunkIndices[n*36 + 0] = n*24 + 0; ChunkManager::TempChunkIndices[n*36 + 1] = n*24 + 1; ChunkManager::TempChunkIndices[n*36 + 2] = n*24 + 2;
+	ChunkManager::TempChunkIndices[n*36 + 3] = n*24 + 0; ChunkManager::TempChunkIndices[n*36 + 4] = n*24 + 2; ChunkManager::TempChunkIndices[n*36 + 5] = n*24 + 3;
 
 	// Fill in the back face index data
-	mIndices[n*36 + 6] = n*24 + 4; mIndices[n*36 + 7]  = n*24 + 5; mIndices[n*36 + 8]  = n*24 + 6;
-	mIndices[n*36 + 9] = n*24 + 4; mIndices[n*36 + 10] = n*24 + 6; mIndices[n*36 + 11] = n*24 + 7;
+	ChunkManager::TempChunkIndices[n*36 + 6] = n*24 + 4; ChunkManager::TempChunkIndices[n*36 + 7]  = n*24 + 5; ChunkManager::TempChunkIndices[n*36 + 8]  = n*24 + 6;
+	ChunkManager::TempChunkIndices[n*36 + 9] = n*24 + 4; ChunkManager::TempChunkIndices[n*36 + 10] = n*24 + 6; ChunkManager::TempChunkIndices[n*36 + 11] = n*24 + 7;
 
 	// Fill in the top face index data
-	mIndices[n*36 + 12] = n*24 + 8; mIndices[n*36 + 13] = n*24 + 9; mIndices[n*36 + 14] = n*24 + 10;
-	mIndices[n*36 + 15] = n*24 + 8; mIndices[n*36 + 16] = n*24 + 10; mIndices[n*36 + 17] = n*24 + 11;
+	ChunkManager::TempChunkIndices[n*36 + 12] = n*24 + 8; ChunkManager::TempChunkIndices[n*36 + 13] = n*24 + 9; ChunkManager::TempChunkIndices[n*36 + 14] = n*24 + 10;
+	ChunkManager::TempChunkIndices[n*36 + 15] = n*24 + 8; ChunkManager::TempChunkIndices[n*36 + 16] = n*24 + 10; ChunkManager::TempChunkIndices[n*36 + 17] = n*24 + 11;
 
 	// Fill in the bottom face index data
-	mIndices[n*36 + 18] = n*24 + 12; mIndices[n*36 + 19] = n*24 + 13; mIndices[n*36 + 20] = n*24 + 14;
-	mIndices[n*36 + 21] = n*24 + 12; mIndices[n*36 + 22] = n*24 + 14; mIndices[n*36 + 23] = n*24 + 15;
+	ChunkManager::TempChunkIndices[n*36 + 18] = n*24 + 12; ChunkManager::TempChunkIndices[n*36 + 19] = n*24 + 13; ChunkManager::TempChunkIndices[n*36 + 20] = n*24 + 14;
+	ChunkManager::TempChunkIndices[n*36 + 21] = n*24 + 12; ChunkManager::TempChunkIndices[n*36 + 22] = n*24 + 14; ChunkManager::TempChunkIndices[n*36 + 23] = n*24 + 15;
 
 	// Fill in the left face index data
-	mIndices[n*36 + 24] = n*24 + 16; mIndices[n*36 + 25] = n*24 + 17; mIndices[n*36 + 26] = n*24 + 18;
-	mIndices[n*36 + 27] = n*24 + 16; mIndices[n*36 + 28] = n*24 + 18; mIndices[n*36 + 29] = n*24 + 19;
+	ChunkManager::TempChunkIndices[n*36 + 24] = n*24 + 16; ChunkManager::TempChunkIndices[n*36 + 25] = n*24 + 17; ChunkManager::TempChunkIndices[n*36 + 26] = n*24 + 18;
+	ChunkManager::TempChunkIndices[n*36 + 27] = n*24 + 16; ChunkManager::TempChunkIndices[n*36 + 28] = n*24 + 18; ChunkManager::TempChunkIndices[n*36 + 29] = n*24 + 19;
 
 	// Fill in the right face index data
-	mIndices[n*36 + 30] = n*24 + 20; mIndices[n*36 + 31] = n*24 + 21; mIndices[n*36 + 32] = n*24 + 22;
-	mIndices[n*36 + 33] = n*24 + 20; mIndices[n*36 + 34] = n*24 + 22; mIndices[n*36 + 35] = n*24 + 23;
+	ChunkManager::TempChunkIndices[n*36 + 30] = n*24 + 20; ChunkManager::TempChunkIndices[n*36 + 31] = n*24 + 21; ChunkManager::TempChunkIndices[n*36 + 32] = n*24 + 22;
+	ChunkManager::TempChunkIndices[n*36 + 33] = n*24 + 20; ChunkManager::TempChunkIndices[n*36 + 34] = n*24 + 22; ChunkManager::TempChunkIndices[n*36 + 35] = n*24 + 23;
 
 	mBlockCount++;
 }

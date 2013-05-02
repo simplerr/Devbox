@@ -2,6 +2,7 @@
 
 #include "Vertex.h"
 #include "GlibStd.h"
+#include "xnacollision.h"
 
 namespace GLib {
 	class Graphics;
@@ -75,6 +76,7 @@ public:
 	void SetRebuildFlag();
 
 	XMFLOAT3 GetPosition();
+	XNA::AxisAlignedBox GetAxisAlignedBox();
 	bool GetRebuildFlag();
 
 	// Returns the index to the block that position is inside.
@@ -90,13 +92,6 @@ private:
 	bool mRebuildFlag;
 
 	XMFLOAT4 mColor;
-
-	// Used for building the chunk.
-	GLib::VoxelVertex mVertices[24*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
-	UINT mIndices[36*CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
-
-	/*vector<GLib::VoxelVertex> vertices;
-	vector<UINT> indices;*/
 };
 
 /*

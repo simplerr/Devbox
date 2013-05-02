@@ -118,8 +118,9 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	if(mDrawDebug)
 	{
 		char buffer[244];
-		sprintf(buffer, "x: %.2f\ny: %.2f\nFPS:%.2f", GLib::GlobalApp::GetInput()->MousePosition().x, GLib::GlobalApp::GetInput()->MousePosition().y, GetCurrentFps());
-		pGraphics->DrawText(buffer, GLib::GlobalApp::GetClientWidth()-100, 400, 20, GLib::ColorRGBA(255, 255, 255, 255));
+		XMFLOAT3 cameraPos = pGraphics->GetCamera()->GetPosition();
+		sprintf(buffer, "camera.x: %.2f\ncamera.y: %.2f\ncamera.y: %.2f\nx: %.2f\ny: %.2f\nFPS:%.2f", cameraPos.x, cameraPos.y, cameraPos.z, GLib::GlobalApp::GetInput()->MousePosition().x, GLib::GlobalApp::GetInput()->MousePosition().y, GetCurrentFps());
+		pGraphics->DrawText(buffer, GLib::GlobalApp::GetClientWidth()-200, 400, 20, GLib::ColorRGBA(255, 255, 255, 255));
 	}
 
 	pGraphics->DrawBoundingBox(XMFLOAT3(0, 70, 0), 6, 6, 6, Colors::Red, false, 1.0f);
@@ -182,7 +183,7 @@ void Game::InitWorld()
 	// Add a camera.
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
 	camera->SetPosition(XMFLOAT3(120, 200, 0));
-	camera->SetMovementSpeed(0.2f);
+	camera->SetMovementSpeed(1.0f);
 	//camera->SetRotateButton(VK_MBUTTON);
 	GetGraphics()->SetCamera(camera);
 

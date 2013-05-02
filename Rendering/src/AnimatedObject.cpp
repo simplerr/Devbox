@@ -65,7 +65,7 @@ namespace GLib
 		Effects::BasicFX->SetUseAnimation(false);
 		Effects::BasicFX->Apply(GlobalApp::GetD3DContext());
 		if(IsBoundingBoxVisible())
-			pGraphics->DrawBoundingBox(&GetBoundingBox(), GetWorldMatrix(), Material(Colors::Blue));
+			pGraphics->DrawBoundingBox(&GetBoundingBox(), Colors::Blue);
 	}
 
 	bool AnimatedObject::RayIntersect(XMVECTOR origin, XMVECTOR direction, float& pDist)

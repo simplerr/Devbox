@@ -24,7 +24,7 @@ void BoundingBoxComponent::Draw(GLib::Graphics* pGraphics)
 	XNA::AxisAlignedBox box;
 	box.Center = pos;
 	box.Extents = XMFLOAT3(mExtends, mExtends, mExtends);
-	pGraphics->DrawBoundingBox(&box, transformComponent->GetWorldMatrix(), GLib::Material(XMFLOAT4(1, 1, 0, 1)));
+	pGraphics->DrawBoundingBox(&box, XMFLOAT4(1, 1, 0, 1), false, 1.0f);
 }
 
 void BoundingBoxComponent::SetExtends(float extends)

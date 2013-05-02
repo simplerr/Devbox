@@ -466,6 +466,11 @@ BOOL GLibIntersectRayAxisAlignedBox( FXMVECTOR Origin, FXMVECTOR Direction, cons
 	return FALSE;
 }
 
+INT GLibIntersectAxisAlignedBoxFrustum( const XNA::AxisAlignedBox* pVolumeA, const XNA::Frustum* pVolumeB )
+{
+	return XNA::IntersectAxisAlignedBoxFrustum(pVolumeA, pVolumeB);
+}
+
 }	// End of Graphics Library namespace.
 
 

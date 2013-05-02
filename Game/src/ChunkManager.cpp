@@ -1,11 +1,22 @@
-#include "ChunkManager.h"
 #include "GlibStd.h"
+#include "ChunkManager.h"
 #include "Graphics.h"
 #include "ModelImporter.h"
 #include "StaticModel.h"
 #include "Chunk.h"
 #include "Input.h"
 #include "Camera.h"
+#include "xnacollision.h"
+#include <xnamath.h>
+
+GLib::VoxelVertex ChunkManager::TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
+UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
+
+// The < operator for ChunkIndex.
+bool operator<(const ChunkIndex a, const ChunkIndex b)
+{
+	return (a.x < b.x) || (a.x==b.x && a.z < b.z);
+}
 
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
@@ -14,14 +25,17 @@ bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 
 ChunkManager::ChunkManager()
 {
+	mLoadRadius = 2;
+
 	mLastChunkId = 0;
 
-	int size = 5;
+	int size = 0;
 	for(int i = 0; i < size; i++)
 	{
 		for(int j = 0; j < size; j++)
 		{
-			mChunkMap[GetNextChunkId()] = new Chunk(i*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, j*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
+			ChunkIndex index(i, j);
+			mChunkMap[index] = new Chunk(i*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, j*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
 		}
 	}
 	
@@ -40,10 +54,14 @@ void ChunkManager::Clear()
 
 void ChunkManager::Update(float dt)
 {
+	UpdateLoadList();
+	UpdateRenderList();
+	LoadChunks();
+
 	auto input = GLib::GlobalApp::GetInput();
 	if(input->KeyPressed('F'))
 	{
-		mChunkMap[1]->Rebuild();
+		mChunkMap[ChunkIndex(0, 0)]->Rebuild();
 	}
 
 	// Testing ray interesecttion and creating block.
@@ -87,9 +105,6 @@ void ChunkManager::Update(float dt)
 				break;
 			}
 		}
-
-		
-		
 	}
 
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
@@ -101,10 +116,10 @@ void ChunkManager::Update(float dt)
 		(*iter).second->SetColor(GLib::Colors::LightSteelBlue);
 	}
 
-	ChunkId id = PositionToChunkId(GLib::GlobalApp::GetCamera()->GetPosition());
+	//ChunkIndex id = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
 
-	if(id != INVALID_CHUNK_ID)
-		mChunkMap[id]->SetColor(GLib::Colors::Green);
+	//if(id != INVALID_CHUNK_ID)
+	//mChunkMap[id]->SetColor(GLib::Colors::Green);
 	
 	/*for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 	{
@@ -140,14 +155,20 @@ void ChunkManager::Update(float dt)
 
 void ChunkManager::Draw(GLib::Graphics* pGraphics)
 {
-	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
+	for(int i = 0; i < mRenderList.size(); i++)
 	{
-		(*iter).second->Render(pGraphics);
+		mRenderList[i]->Render(pGraphics);
 	}
+
+	pGraphics->DrawText("Visible chunks: " + to_string(mRenderList.size()), 10, 500, 40);
 
 	pGraphics->DrawBoundingBox(mTestBox, 3, 3, 3);
 
-	ChunkId chunkIndex = PositionToChunkId(mTestBox);
+	ChunkIndex index = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
+
+	char buffer[256];
+	sprintf(buffer, "chunk index: [%i][%i]", index.x, index.z);
+	pGraphics->DrawText(buffer, 40, 600, 30);
 
 	/*if(chunkIndex != INVALID_CHUNK_ID)
 	{
@@ -164,7 +185,94 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	}*/
 }
 
-ChunkId ChunkManager::PositionToChunkId(XMFLOAT3 position)
+void ChunkManager::LoadChunks()
+{
+	int chunksLoaded = 0;
+	for(int i = 0; i < mLoadList.size(); i++)
+	{
+		if(chunksLoaded != MAX_CHUNKS_LOADED_PER_FRAME)
+		{
+			// Create the chunk.
+			Chunk* chunk = new Chunk(mLoadList[i].x*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, mLoadList[i].z*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
+			mChunkMap[mLoadList[i]] =  chunk;
+
+			chunksLoaded++;
+		}
+		else
+			break;
+	}
+
+	mLoadList.clear();
+}
+
+void ChunkManager::UpdateLoadList()
+{
+	// [TEMP][NOTE]
+	// Use the camera position for now.
+	XMFLOAT3 playerPosition = GLib::GlobalApp::GetCamera()->GetPosition();
+	ChunkIndex playerIndex = PositionToChunkIndex(playerPosition);
+
+	// Only add to the load list if it's empty.
+	// Otherwise the list will keep on growing and chunks will be loaded twice.
+	//if(mLoadList.size() != 0)
+	//	return;
+
+	int count = 0;
+	for(int x = playerIndex.x - mLoadRadius; x < playerIndex.x + mLoadRadius; x++)
+	{
+		for(int z = playerIndex.z - mLoadRadius; z < playerIndex.z + mLoadRadius; z++)
+		{
+			// A needed chunk doesn't exist -> load it.
+			ChunkIndex chunkIndex = ChunkIndex(x, z);
+			if(mChunkMap.find(chunkIndex) == mChunkMap.end())
+			{
+				mLoadList.push_back(chunkIndex);
+				count++;	
+			}
+			
+		}
+	}
+	int a = 1;
+	// 1.) Find out which chunks that have to be loaded depending on the players position.
+	// 2.) Ignore already loaded chunks.
+
+	// Transform the players position to chunk position?
+
+	//mChunkMap[GetNextChunkId()] = new Chunk(i*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, j*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
+}
+
+void ChunkManager::UpdateRenderList()
+{
+	mRenderList.clear();
+
+	XNA::Frustum frustum = GLib::GlobalApp::GetCamera()->GetFrustum();
+
+	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
+	{
+		Chunk* chunk = (*iter).second;
+		
+		// Inside frustum, add to the render list.
+		if(GLib::GLibIntersectAxisAlignedBoxFrustum(&chunk->GetAxisAlignedBox(), &frustum))
+		{
+			mRenderList.push_back(chunk);
+		}
+	}
+}
+
+ChunkIndex ChunkManager::PositionToChunkIndex(XMFLOAT3 position)
+{
+	ChunkIndex index(0, 0);
+
+	float size = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
+
+	// Transform to block position.
+	index.x = position.x / size;
+	index.z = position.z / size;
+
+	return index;
+}
+
+/*ChunkId ChunkManager::PositionToChunkId(XMFLOAT3 position)
 {
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 	{
@@ -183,7 +291,7 @@ ChunkId ChunkManager::PositionToChunkId(XMFLOAT3 position)
 	}
 
 	return INVALID_CHUNK_ID;
-}
+}*/
 
 void ChunkManager::AddVoxel(float x, float y, float z)
 {

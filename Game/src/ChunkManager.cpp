@@ -12,12 +12,6 @@
 GLib::VoxelVertex ChunkManager::TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
 UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
 
-// The < operator for ChunkIndex.
-bool operator<(const ChunkIndex a, const ChunkIndex b)
-{
-	return (a.x < b.x) || (a.x==b.x && a.z < b.z);
-}
-
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
 	return a.distance < b.distance;
@@ -25,19 +19,9 @@ bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 
 ChunkManager::ChunkManager()
 {
-	mLoadRadius = 2;
+	mLoadRadius = 4;
 
 	mLastChunkId = 0;
-
-	int size = 0;
-	for(int i = 0; i < size; i++)
-	{
-		for(int j = 0; j < size; j++)
-		{
-			ChunkIndex index(i, j);
-			mChunkMap[index] = new Chunk(i*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, j*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
-		}
-	}
 	
 	mTestBox = XMFLOAT3(0, 0, 0);
 }
@@ -194,6 +178,8 @@ void ChunkManager::LoadChunks()
 		{
 			// Create the chunk.
 			Chunk* chunk = new Chunk(mLoadList[i].x*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, mLoadList[i].z*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
+			chunk->SetChunkIndex(mLoadList[i]);
+			chunk->Init();
 			mChunkMap[mLoadList[i]] =  chunk;
 
 			chunksLoaded++;

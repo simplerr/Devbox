@@ -32,17 +32,6 @@ struct Voxel
 	XMFLOAT3 position;
 };
 
-struct ChunkIndex
-{
-	ChunkIndex(int x, int z)
-	{
-		this->x = x;
-		this->z = z;
-	}
-	int x, z;
-};
-
-bool operator<(const ChunkIndex a, const ChunkIndex b);
 
 typedef unsigned int ChunkId;
 const ChunkId INVALID_CHUNK_ID = 0;

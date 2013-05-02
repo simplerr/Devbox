@@ -3,6 +3,9 @@
 #include "Vertex.h"
 #include "GlibStd.h"
 #include "xnacollision.h"
+#include "noise\noise.h"
+
+#pragma comment(lib, "../debug/libnoise.lib")
 
 namespace GLib {
 	class Graphics;
@@ -33,7 +36,7 @@ class Block
 {
 public:
 	Block() {
-		mActive = (rand() % 100 == 0 ? true : true);
+		mActive = (rand() % 100 == 0 ? false : false);
 	}
 
 	~Block() {};
@@ -45,6 +48,19 @@ private:
 	BlockType mBlockType;
 	bool mActive;
 };
+
+struct ChunkIndex
+{
+	ChunkIndex() { x = z = 0;}
+	ChunkIndex(int x, int z)
+	{
+		this->x = x;
+		this->z = z;
+	}
+	int x, z;
+};
+
+bool operator<(const ChunkIndex a, const ChunkIndex b);
 
 /******************************************************************************************//**
 * The position of a chunk is in the "left bottom" corner, not in the center.
@@ -58,6 +74,8 @@ public:
 	Chunk(float x, float y, float z);
 	~Chunk();
 
+	void Init();
+
 	// Loops over all blocks and adds them to the vertex buffer.
 	void CreateMesh();
 
@@ -69,11 +87,14 @@ public:
 
 	void Render(GLib::Graphics* pGraphics);
 	bool RayIntersectBox(XMVECTOR origin, XMVECTOR direction, float& pDist);
+
+	// [TODO] This doesn't work longer since the vertices are only temporary stored.
 	bool RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist);
 
 	void SetColor(XMFLOAT4 color);
 	void SetBlockActive(BlockIndex blockIndex, bool active);
 	void SetRebuildFlag();
+	void SetChunkIndex(ChunkIndex index);
 
 	XMFLOAT3 GetPosition();
 	XNA::AxisAlignedBox GetAxisAlignedBox();
@@ -82,16 +103,23 @@ public:
 	// Returns the index to the block that position is inside.
 	BlockIndex PositionToBlockId(XMFLOAT3 position);
 
+	void BuildSphere();
+	void BuildLandscape();
+
 	static const int CHUNK_SIZE = 16;
 	static const int VOXEL_SIZE = 4;
+
 private:
 	Block*** mBlocks;
 	GLib::Primitive* mPrimitive;
 	XMFLOAT3 mPosition;
+	ChunkIndex mChunkIndex;
 	int mBlockCount;
 	bool mRebuildFlag;
 
 	XMFLOAT4 mColor;
+
+	static noise::module::Perlin perlin;
 };
 
 /*

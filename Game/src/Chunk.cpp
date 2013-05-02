@@ -14,6 +14,14 @@
 
 using namespace GLib;
 
+noise::module::Perlin Chunk::perlin;
+
+// The < operator for ChunkIndex.
+bool operator<(const ChunkIndex a, const ChunkIndex b)
+{
+	return (a.x < b.x) || (a.x==b.x && a.z < b.z);
+}
+
 Chunk::Chunk(float x, float y, float z)
 {
 	// Create the blocks.
@@ -35,10 +43,6 @@ Chunk::Chunk(float x, float y, float z)
 	mPrimitive = nullptr;
 
 	mColor = Colors::LightSteelBlue;
-
-	CreateMesh();
-	mPrimitive = new GLib::Primitive;
-	BuildMeshPrimitive();
 }
 
 Chunk::~Chunk()
@@ -56,6 +60,15 @@ Chunk::~Chunk()
 	delete [] mBlocks;
 }
 
+void Chunk::Init()
+{
+	BuildLandscape();
+
+	CreateMesh();
+	mPrimitive = new GLib::Primitive;
+	BuildMeshPrimitive();
+}
+
 // Loops over all blocks and adds them to the vertex buffer.
 void Chunk::CreateMesh()
 {
@@ -70,8 +83,7 @@ void Chunk::CreateMesh()
 					float X = x - CHUNK_SIZE/2;
 					float Y = y - CHUNK_SIZE/2;
 					float Z = z - CHUNK_SIZE/2;
-					if(rand() % 40 == 0)
-						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+					AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
 				else
 				{
@@ -82,6 +94,43 @@ void Chunk::CreateMesh()
 	}
 }
 
+void Chunk::BuildLandscape()
+{
+	for(int x = 0; x < CHUNK_SIZE; x++)
+	{
+		for(int z = 0; z < CHUNK_SIZE; z++)
+		{
+			// Read noise value here...
+			float height = perlin.GetValue((float)(mChunkIndex.x * CHUNK_SIZE + x)/100, 0, (float)(mChunkIndex.z * CHUNK_SIZE + z)/100);
+
+			height = min(15, height*(CHUNK_SIZE-1));
+			height = max(1, height);
+			for(int y = 0; y < height; y++)
+			{
+				mBlocks[x][y][z].SetActive(true);
+			}
+		}
+	}
+}
+
+void Chunk::BuildSphere()
+{
+	for(int x = 0; x < CHUNK_SIZE; x++)
+	{
+		for(int y = 0; y < CHUNK_SIZE; y++)
+		{
+			for(int z = 0; z < CHUNK_SIZE; z++)
+			{
+				float X = x - CHUNK_SIZE/2;
+				float Y = y - CHUNK_SIZE/2;
+				float Z = z - CHUNK_SIZE/2;
+
+				if(sqrt(X*X + Y*Y + Z*Z) < CHUNK_SIZE/2)
+					mBlocks[x][y][z].SetActive(true);
+			}
+		}
+	}
+}
 
 void Chunk::BuildMeshPrimitive()
 {
@@ -232,6 +281,11 @@ void Chunk::SetColor(XMFLOAT4 color)
 void Chunk::SetRebuildFlag()
 {
 	mRebuildFlag = true;
+}
+
+void Chunk::SetChunkIndex(ChunkIndex index)
+{
+	mChunkIndex = index;
 }
 
 void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)

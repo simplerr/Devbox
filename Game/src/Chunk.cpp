@@ -273,6 +273,11 @@ bool Chunk::GetRebuildFlag()
 	return mRebuildFlag;
 }
 
+int Chunk::GetNumBlocks()
+{
+	return mBlockCount;
+}
+
 void Chunk::SetColor(XMFLOAT4 color)
 {
 	mColor = color;

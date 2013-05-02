@@ -144,15 +144,20 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 		mRenderList[i]->Render(pGraphics);
 	}
 
+	int totalBlocks = 0;
+	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
+	{
+		totalBlocks += (*iter).second->GetNumBlocks();
+	}
+
+	ChunkIndex index = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
+	char buffer[256];
+	sprintf(buffer, "Chunk index: [%i][%i]\nTotal blocks: %i", index.x, index.z, totalBlocks);
+	pGraphics->DrawText(buffer, 40, 600, 30);
+
 	pGraphics->DrawText("Visible chunks: " + to_string(mRenderList.size()), 10, 500, 40);
 
 	pGraphics->DrawBoundingBox(mTestBox, 3, 3, 3);
-
-	ChunkIndex index = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
-
-	char buffer[256];
-	sprintf(buffer, "chunk index: [%i][%i]", index.x, index.z);
-	pGraphics->DrawText(buffer, 40, 600, 30);
 
 	/*if(chunkIndex != INVALID_CHUNK_ID)
 	{

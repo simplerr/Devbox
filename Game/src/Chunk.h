@@ -99,6 +99,7 @@ public:
 	XMFLOAT3 GetPosition();
 	XNA::AxisAlignedBox GetAxisAlignedBox();
 	bool GetRebuildFlag();
+	int GetNumBlocks();
 
 	// Returns the index to the block that position is inside.
 	BlockIndex PositionToBlockId(XMFLOAT3 position);

@@ -80,10 +80,26 @@ void Chunk::CreateMesh()
 			{
 				if(mBlocks[x][y][z].IsActive())
 				{
-					float X = x - CHUNK_SIZE/2;
-					float Y = y - CHUNK_SIZE/2;
-					float Z = z - CHUNK_SIZE/2;
-					AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+					// If all surrounding blocks are active then this block
+					// don't need to be rendered.
+					bool allNeighborsActive = true;
+					if(x > 0)
+						allNeighborsActive = mBlocks[x-1][y][z].IsActive() ? allNeighborsActive : false;
+					if(x < CHUNK_SIZE-1)
+						allNeighborsActive = mBlocks[x+1][y][z].IsActive() ? allNeighborsActive : false;
+
+					if(y > 0)
+						allNeighborsActive = mBlocks[x][y-1][z].IsActive() ? allNeighborsActive : false;
+					if(y < CHUNK_SIZE-1)
+						allNeighborsActive = mBlocks[x][y+1][z].IsActive() ? allNeighborsActive : false;
+
+					if(z > 0)
+						allNeighborsActive = mBlocks[x][y][z-1].IsActive() ? allNeighborsActive : false;
+					if(z < CHUNK_SIZE-1)
+						allNeighborsActive = mBlocks[x][y][z+1].IsActive() ? allNeighborsActive : false;
+
+					if(!allNeighborsActive)
+						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
 				else
 				{

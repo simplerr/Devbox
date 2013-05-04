@@ -183,7 +183,7 @@ void Game::InitWorld()
 	// Add a camera.
 	GLib::CameraFPS* camera = new GLib::CameraFPS();
 	camera->SetPosition(XMFLOAT3(10000, 200, 10000));
-	camera->SetMovementSpeed(1.0f);
+	camera->SetMovementSpeed(2.0f);
 	//camera->SetRotateButton(VK_MBUTTON);
 	GetGraphics()->SetCamera(camera);
 

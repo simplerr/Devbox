@@ -24,7 +24,6 @@ bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 
 ChunkManager::ChunkManager()
 {
-	mLoadRadius = 8;
 	mLastChunkId = 0;
 	mTestBox = XMFLOAT3(0, 0, 0);
 
@@ -186,9 +185,9 @@ void ChunkManager::UpdateLoadList()
 	XMFLOAT3 cameraPosition = GLib::GlobalApp::GetCamera()->GetPosition();
 	ChunkIndex playerIndex = PositionToChunkIndex(cameraPosition);
 
-	for(int x = playerIndex.x - mLoadRadius; x < playerIndex.x + mLoadRadius; x++)
+	for(int x = playerIndex.x - CHUNK_LOAD_RADIUS; x < playerIndex.x + CHUNK_LOAD_RADIUS; x++)
 	{
-		for(int z = playerIndex.z - mLoadRadius; z < playerIndex.z + mLoadRadius; z++)
+		for(int z = playerIndex.z - CHUNK_LOAD_RADIUS; z < playerIndex.z + CHUNK_LOAD_RADIUS; z++)
 		{
 			// A needed chunk doesn't exist -> load it.
 			ChunkIndex chunkIndex = ChunkIndex(x, z);
@@ -217,9 +216,9 @@ void ChunkManager::UpdateRenderList()
 XMFLOAT3 ChunkManager::ChunkAlignPosition(const XMFLOAT3& position)
 {
 	float chunkSize = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
-	ChunkIndex tempIndex  = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
+	ChunkIndex tempIndex  = PositionToChunkIndex(position);
 
-	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.x * chunkSize);
+	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.z * chunkSize);
 }
 
 void ChunkManager::TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Frustum& frustum)

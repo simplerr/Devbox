@@ -63,6 +63,7 @@ public:
 	void AddVoxel(float x, float y, float z);
 
 	static const int MAX_CHUNKS_LOADED_PER_FRAME = 1;
+	static const int CHUNK_LOAD_RADIUS = 8; // Load chunks within this radius from the camera.
 private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;
@@ -82,9 +83,6 @@ private:
 
 
 	XMFLOAT3 mTestBox;
-
-	// Chunks within this radius from the player should be loaded.
-	int mLoadRadius;
 
 	bool mDrawDebug;
 public:

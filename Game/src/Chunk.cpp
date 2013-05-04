@@ -98,6 +98,7 @@ void Chunk::CreateMesh()
 					if(z < CHUNK_SIZE-1)
 						allNeighborsActive = mBlocks[x][y][z+1].IsActive() ? allNeighborsActive : false;
 
+					// Only add cube if not surrounded by active blocks.
 					if(!allNeighborsActive)
 						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
 				}
@@ -119,7 +120,7 @@ void Chunk::BuildLandscape()
 			// Read noise value here...
 			float height = perlin.GetValue((float)(mChunkIndex.x * CHUNK_SIZE + x)/100, 0, (float)(mChunkIndex.z * CHUNK_SIZE + z)/100);
 
-			height = min(15, height*(CHUNK_SIZE-1));
+			height = min(CHUNK_SIZE-1, height*(CHUNK_SIZE-1));
 			height = max(1, height);
 			for(int y = 0; y < height; y++)
 			{
@@ -192,10 +193,6 @@ void Chunk::Render(GLib::Graphics* pGraphics)
 
 	float size = CHUNK_SIZE * VOXEL_SIZE;
 	float localCenter = size / 2;
-	
-	pGraphics->DrawBoundingBox(&GetAxisAlignedBox(), Colors::Red, true, 1.0f);
-
-	pGraphics->DrawBoundingBox(XMFLOAT3(mPosition.x, mPosition.y, mPosition.z), 3, 3, 3, Colors::Black, false, 1.0f);
 }
 
 BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)

@@ -45,6 +45,8 @@ public:
 	void Update(float dt);
 	void Draw(GLib::Graphics* pGraphics);
 
+	void DrawDebug(GLib::Graphics* pGraphics);
+
 	// Does frustum culling on all the chunks.
 	void UpdateRenderList();
 
@@ -56,6 +58,7 @@ public:
 
 	//ChunkId PositionToChunkId(XMFLOAT3 position);
 	ChunkIndex PositionToChunkIndex(XMFLOAT3 position);
+	ChunkIndex PositionToChunkIndex(float x, float z);
 
 	void AddVoxel(float x, float y, float z);
 
@@ -64,6 +67,9 @@ private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;
 
+	void TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Frustum& frustum);
+	void OldFrustumCulling();
+	XMFLOAT3 ChunkAlignPosition(const XMFLOAT3& position);
 private:
 	// All chunks.
 	map<ChunkIndex, Chunk*> mChunkMap;
@@ -80,6 +86,7 @@ private:
 	// Chunks within this radius from the player should be loaded.
 	int mLoadRadius;
 
+	bool mDrawDebug;
 public:
 	// Used for building the chunks.
 	static GLib::VoxelVertex TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];

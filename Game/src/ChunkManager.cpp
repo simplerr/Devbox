@@ -19,6 +19,7 @@ XMFLOAT3 testCameraPos;
 
 int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
 int ChunkManager::CHUNK_LOAD_RADIUS = 10;
+int ChunkManager::WORLD_SIZE_IN_CHUNKS = 20;
 
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
@@ -27,24 +28,44 @@ bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 
 ChunkManager::ChunkManager()
 {
-	mLastChunkId = 0;
-	mTestBox = XMFLOAT3(0, 0, 0);
-
-	mDrawDebug = false;
-
 	// Debug stuff
 	testCameraPos = GLib::GlobalApp::GetCamera()->GetPosition();
 	testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
+
+	mLastChunkId = 0;
+	mTestBox = XMFLOAT3(0, 0, 0);
+
+	mChunkMap.resize(WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS);
+	mLoadedChunks.resize(WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS);
+	mWorldCenterIndex = PositionToChunkIndex(testCameraPos);
+
+	mDrawDebug = false;
 }
 
 void ChunkManager::Clear()
 {
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 	{
-		delete (*iter).second;
+		delete (*iter);
 	}
 
 	mChunkMap.clear();
+}
+
+bool ChunkManager::IsChunkLoaded(const int& chunkId)
+{
+	if(!InBounds(chunkId))
+		GLIB_ERROR("Chunk out of bounds!");
+	else
+		return mChunkMap[chunkId] != nullptr;
+}
+
+int ChunkManager::ChunkCoordToIndex(const ChunkIndex& index)
+{
+	int x = index.x - mWorldCenterIndex.x + WORLD_SIZE_IN_CHUNKS/2;
+	int z = index.z - mWorldCenterIndex.z + WORLD_SIZE_IN_CHUNKS/2;
+
+	return x * WORLD_SIZE_IN_CHUNKS + z;
 }
 
 void ChunkManager::Update(float dt)
@@ -53,66 +74,62 @@ void ChunkManager::Update(float dt)
 	LoadChunks();
 
 	auto input = GLib::GlobalApp::GetInput();
-	if(input->KeyPressed('F'))
-	{
-		mChunkMap[ChunkIndex(0, 0)]->Rebuild();
-	}
 
 	if(input->KeyPressed('C'))
 		testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
 
 	// Testing ray interesecttion and creating block.
-	if(input->KeyPressed(VK_LBUTTON))
-	{
-		GLib::Ray ray = GLib::GlobalApp::GetCamera()->GetWorldPickingRay();
-		XMVECTOR origin = XMLoadFloat3(&ray.origin);
-		XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
+	//if(input->KeyPressed(VK_LBUTTON))
+	//{
+	//	GLib::Ray ray = GLib::GlobalApp::GetCamera()->GetWorldPickingRay();
+	//	XMVECTOR origin = XMLoadFloat3(&ray.origin);
+	//	XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
 
-		// Intersected chunks sorted by distance.
-		vector<ChunkIntersection> intersectedChunks;
+	//	// Intersected chunks sorted by distance.
+	//	vector<ChunkIntersection> intersectedChunks;
 
-		// Broadphase just testing AABBs.
-		float dist = 99999;
-		for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
-		{
-			if((*iter).second->RayIntersectBox(origin, dir, dist))
-				intersectedChunks.push_back(ChunkIntersection((*iter).second, dist));
-		}
+	//	// Broadphase just testing AABBs.
+	//	float dist = 99999;
+	//	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
+	//	{
+	//		if((*iter).second->RayIntersectBox(origin, dir, dist))
+	//			intersectedChunks.push_back(ChunkIntersection((*iter).second, dist));
+	//	}
 
-		// Sort the intersection array.
-		std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
+	//	// Sort the intersection array.
+	//	std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
 
-		for(int i = 0; i < intersectedChunks.size(); i++)
-		{
-			float dist;
-			if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
-			{
-				XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction;
-				float add = 0.01f;
-				intersectPosition.x += ray.direction.x < 0 ? -add : add;
-				intersectPosition.y += ray.direction.y < 0 ? -add : add;
-				intersectPosition.z += ray.direction.z < 0 ? -add : add;
-				BlockIndex blockIndex = intersectedChunks[i].chunk->PositionToBlockId(intersectPosition);
+	//	for(int i = 0; i < intersectedChunks.size(); i++)
+	//	{
+	//		float dist;
+	//		if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
+	//		{
+	//			XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction;
+	//			float add = 0.01f;
+	//			intersectPosition.x += ray.direction.x < 0 ? -add : add;
+	//			intersectPosition.y += ray.direction.y < 0 ? -add : add;
+	//			intersectPosition.z += ray.direction.z < 0 ? -add : add;
+	//			BlockIndex blockIndex = intersectedChunks[i].chunk->PositionToBlockId(intersectPosition);
 
-				intersectedChunks[i].chunk->SetBlockActive(blockIndex, false);
+	//			intersectedChunks[i].chunk->SetBlockActive(blockIndex, false);
 
-				// Break the loop since this was the closest chunk.
-				// If the mesh ray intersection returns false the next chunk
-				// in the intersectedChunks list is tested.
-				break;
-			}
-		}
-	}
+	//			// Break the loop since this was the closest chunk.
+	//			// If the mesh ray intersection returns false the next chunk
+	//			// in the intersectedChunks list is tested.
+	//			break;
+	//		}
+	//	}
+	//}
 
-	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
-	{
-		break;
-		// Rebuild chunks with the rebuild flag set.
-		if((*iter).second->GetRebuildFlag())
-			(*iter).second->Rebuild();
+	//for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
+	//{
+	//	break;
+	//	// Rebuild chunks with the rebuild flag set.
+	//	if((*iter).->GetRebuildFlag())
+	//		(*iter).second->Rebuild();
 
-		(*iter).second->SetColor(GLib::Colors::LightSteelBlue);
-	}
+	//	(*iter).second->SetColor(GLib::Colors::LightSteelBlue);
+	//}
 
 	//ChunkIndex id = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
 
@@ -171,7 +188,10 @@ void ChunkManager::LoadChunks()
 			Chunk* chunk = new Chunk(mLoadList[i].x*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, mLoadList[i].z*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
 			chunk->SetChunkIndex(mLoadList[i]);
 			chunk->Init();
-			mChunkMap[mLoadList[i]] =  chunk;
+			mChunkMap[ChunkCoordToIndex(mLoadList[i])] =  chunk;
+
+			int index = ChunkCoordToIndex(mLoadList[i]);
+			mLoadedChunks[ChunkCoordToIndex(mLoadList[i])] = true;
 
 			chunksLoaded++;
 		}
@@ -195,7 +215,8 @@ void ChunkManager::UpdateLoadList()
 		{
 			// A needed chunk doesn't exist -> load it.
 			ChunkIndex chunkIndex = ChunkIndex(x, z);
-			if(mChunkMap.find(chunkIndex) == mChunkMap.end())
+
+			if(!IsChunkLoaded(ChunkCoordToIndex(chunkIndex)))//if(mChunkMap.find(chunkIndex) == mChunkMap.end())
 			{
 				mLoadList.push_back(chunkIndex);
 			}
@@ -225,6 +246,11 @@ XMFLOAT3 ChunkManager::ChunkAlignPosition(const XMFLOAT3& position)
 	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.z * chunkSize);
 }
 
+bool ChunkManager::InBounds(const int& chunkId)
+{
+	return chunkId >= 0 && chunkId < WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS;
+}
+
 void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, const GLib::Frustum& frustum)
 {
 	quadtree_counter++;
@@ -249,22 +275,40 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 
 			// Add the chunk indexes we need to test AABB collision against.
 			// They are calculated from the center of the current quad using an offset.
-			vector<ChunkIndex> indexesToTest;
-			indexesToTest.push_back(PositionToChunkIndex(center.x - offset , center.z - offset)); // Chunk 1 (-1, -1)
-			indexesToTest.push_back(PositionToChunkIndex(center.x + offset , center.z - offset)); // Chunk 2 (+1, -1)
-			indexesToTest.push_back(PositionToChunkIndex(center.x + offset , center.z + offset)); // Chunk 3 (+1, +1)
-			indexesToTest.push_back(PositionToChunkIndex(center.x - offset , center.z + offset)); // Chunk 4 (-1, +1)
 
 			// Loop through and test frustum intersection on the chunks.
 			Chunk* chunk = nullptr;
-			for(int i = 0; i < indexesToTest.size(); i++)
+
+			int index = ChunkCoordToIndex(PositionToChunkIndex(center.x - offset , center.z - offset));
+			if(InBounds(index))
 			{
-				if(mChunkMap.find(indexesToTest[i]) != mChunkMap.end())	// Must use find since [] inserts a nullptr if the key doesn't exist!
-				{
-					chunk = mChunkMap[indexesToTest[i]];
-					if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
-						mRenderList.push_back(chunk);
-				}
+				chunk = mChunkMap[index];
+				if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
+					mRenderList.push_back(chunk);
+			}
+
+			index = ChunkCoordToIndex(PositionToChunkIndex(center.x + offset , center.z - offset));
+			if(InBounds(index))
+			{
+				chunk = mChunkMap[index];
+				if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
+					mRenderList.push_back(chunk);
+			}
+
+			index = ChunkCoordToIndex(PositionToChunkIndex(center.x + offset , center.z + offset));
+			if(InBounds(index))
+			{
+				chunk = mChunkMap[index];
+				if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
+					mRenderList.push_back(chunk);
+			}
+
+			index = ChunkCoordToIndex(PositionToChunkIndex(center.x - offset , center.z + offset));
+			if(InBounds(index))
+			{
+				chunk = mChunkMap[index];
+				if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
+					mRenderList.push_back(chunk);
 			}
 		}
 		else
@@ -291,7 +335,7 @@ void ChunkManager::OldFrustumCulling()
 
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 	{
-		Chunk* chunk = (*iter).second;
+		Chunk* chunk = (*iter);
 
 		// Inside frustum, add to the render list.
 		if(GLib::GLibIntersectAxisAlignedBoxFrustum(&chunk->GetAxisAlignedBox(), &frustum))
@@ -304,7 +348,7 @@ void ChunkManager::DrawDebug(GLib::Graphics* pGraphics)
 	// Count total blocks.
 	int totalBlocks = 0;
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
-		totalBlocks += (*iter).second->GetNumBlocks();
+		totalBlocks += (*iter)->GetNumBlocks();
 
 	ChunkIndex index = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
 	char buffer[256];

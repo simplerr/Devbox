@@ -65,6 +65,7 @@ public:
 
 	static int MAX_CHUNKS_LOADED_PER_FRAME;
 	static int CHUNK_LOAD_RADIUS; // Load chunks within this radius from the camera.
+	static int WORLD_SIZE_IN_CHUNKS;
 private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;
@@ -72,9 +73,13 @@ private:
 	void TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, const GLib::Frustum& frustum);
 	void OldFrustumCulling();
 	XMFLOAT3 ChunkAlignPosition(const XMFLOAT3& position);
+
+	bool IsChunkLoaded(const int& chunkId);
+	bool InBounds(const int& chunkId);
+	int ChunkCoordToIndex(const ChunkIndex& index);
 private:
 	// All chunks.
-	map<ChunkIndex, Chunk*> mChunkMap;
+	vector<Chunk*> mChunkMap;
 
 	// Chunks that should be rendered (tested with frustum culling before getting into this list)
 	vector<Chunk*> mRenderList;
@@ -82,6 +87,8 @@ private:
 	// Chunks that needs to loaded depending on the players (cameras) position.
 	vector<ChunkIndex> mLoadList;
 
+	vector<bool> mLoadedChunks;
+	ChunkIndex mWorldCenterIndex;
 
 	XMFLOAT3 mTestBox;
 

@@ -14,7 +14,7 @@ UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk
 
 int quadtree_counter = 0;
 
-XNA::Frustum testFrustum;
+GLib::Frustum testFrustum;
 XMFLOAT3 testCameraPos;
 
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
@@ -149,9 +149,7 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 
 	// Debug information.
 	if(mDrawDebug)
-	{
 		DrawDebug(pGraphics);
-	}
 
 	pGraphics->DrawBoundingBox(mTestBox, 3, 3, 3);
 }
@@ -208,7 +206,7 @@ void ChunkManager::UpdateRenderList()
 	XMFLOAT3 chunkAlignedCameraPos = (ChunkAlignPosition(cameraPos));
 
 	// Traverse a quadtree to quickly find out which chunks are visible.
-	TraverseQuadtree(chunkAlignedCameraPos, 16, GLib::GlobalApp::GetCamera()->GetFrustum());
+	TraverseQuadtree(chunkAlignedCameraPos, 32, GLib::GlobalApp::GetCamera()->GetFrustum());
 
 	//OldFrustumCulling();
 }
@@ -221,7 +219,7 @@ XMFLOAT3 ChunkManager::ChunkAlignPosition(const XMFLOAT3& position)
 	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.z * chunkSize);
 }
 
-void ChunkManager::TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Frustum& frustum)
+void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, const GLib::Frustum& frustum)
 {
 	quadtree_counter++;
 
@@ -232,7 +230,7 @@ void ChunkManager::TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Fr
 	aabb.Extents = XMFLOAT3(chunkSize * radiusInChunks, chunkSize/2, chunkSize * radiusInChunks);
 	
 	// Test AABB collision against the current quad (it's actually a cube but Y is always the same).
-	if(GLib::GLibIntersectAxisAlignedBoxFrustum(&aabb, &frustum))
+	if(frustum.BoxIntersecting(aabb))
 	{
 		if(mDrawDebug)
 			GLib::GlobalApp::GetGraphics()->DrawBoundingBox(&aabb, GLib::Colors::Green, true, 1.0f);
@@ -258,7 +256,7 @@ void ChunkManager::TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Fr
 				if(mChunkMap.find(indexesToTest[i]) != mChunkMap.end())	// Must use find since [] inserts a nullptr if the key doesn't exist!
 				{
 					chunk = mChunkMap[indexesToTest[i]];
-					if(chunk != nullptr && GLib::GLibIntersectAxisAlignedBoxFrustum(&chunk->GetAxisAlignedBox(), &frustum))
+					if(chunk != nullptr && frustum.BoxIntersecting(chunk->GetAxisAlignedBox())) 
 						mRenderList.push_back(chunk);
 				}
 			}

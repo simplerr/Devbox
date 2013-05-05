@@ -1,5 +1,6 @@
 #pragma once
 #include "Utility.h"
+#include "Frustum.h"
 
 using namespace XNA;
 
@@ -43,7 +44,7 @@ namespace GLib
 		XMFLOAT3	GetDirection();
 		XMFLOAT3	GetRight();
 		float		GetMovementSpeed();
-		Frustum		GetFrustum();
+		GLib::Frustum		GetFrustum();
 		Ray			GetWorldPickingRay();
 		bool		GetLocked();
 	private:
@@ -54,7 +55,7 @@ namespace GLib
 		XMFLOAT3	mTarget;
 		XMFLOAT3	mUp;
 		XMFLOAT3	mRight;
-		Frustum		mFrustum;
+		GLib::Frustum mFrustum;
 
 		float		mMovementSpeed;
 		float		mSensitivity;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Utility.h"
 #include "Chunk.h"
+#include "Frustum.h"
 
 namespace GLib {
 	class Graphics;
@@ -63,12 +63,12 @@ public:
 	void AddVoxel(float x, float y, float z);
 
 	static const int MAX_CHUNKS_LOADED_PER_FRAME = 1;
-	static const int CHUNK_LOAD_RADIUS = 8; // Load chunks within this radius from the camera.
+	static const int CHUNK_LOAD_RADIUS = 4; // Load chunks within this radius from the camera.
 private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;
 
-	void TraverseQuadtree(XMFLOAT3 center, int radiusInChunks, XNA::Frustum& frustum);
+	void TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, const GLib::Frustum& frustum);
 	void OldFrustumCulling();
 	XMFLOAT3 ChunkAlignPosition(const XMFLOAT3& position);
 private:

@@ -30,7 +30,8 @@ namespace GLib
 		UpdateViewMatrix();
 		
 		// Build the camera frustum.
-		XNA::ComputeFrustumFromProjection(&mFrustum, &XMLoadFloat4x4(&GetProjectionMatrix()));
+		mFrustum.ConstructFromProjection(GetProjectionMatrix());
+		//XNA::ComputeFrustumFromProjection(&mFrustum, &XMLoadFloat4x4(&GetProjectionMatrix()));
 	}
 
 	//! Cleanup.
@@ -60,6 +61,10 @@ namespace GLib
 		XMVECTOR pos = XMLoadFloat3(&mPosition);
 		XMVECTOR target = XMLoadFloat3(&mTarget);
 		XMStoreFloat4x4(&mView, XMMatrixLookAtLH(pos, target, up));
+
+		XMFLOAT4X4 viewProj;
+		XMStoreFloat4x4(&viewProj, XMLoadFloat4x4(&GetViewMatrix()) * XMLoadFloat4x4(&GetProjectionMatrix()));
+		mFrustum.BuildFromViewProjection(viewProj);
 	}
 
 	void Camera::Move(XMFLOAT3 speed)
@@ -198,21 +203,9 @@ namespace GLib
 	}
 
 	//! Returns the camera frustum in world space.
-	Frustum Camera::GetFrustum()
+	GLib::Frustum Camera::GetFrustum()
 	{
-		XMVECTOR scale, rotation, translation, detView;
-
-		// The frustum is in view space, so we need to get the inverse view matrix
-		// to transform it to world space.
-		XMMATRIX invView = XMMatrixInverse(&detView, XMLoadFloat4x4(&GetViewMatrix()));
-
-		// Decompose the inverse view matrix and transform the frustum with the components.
-		XMMatrixDecompose(&scale, &rotation, &translation, invView);
-		Frustum worldFrustum;
-		TransformFrustum(&worldFrustum, &mFrustum, XMVectorGetX(scale), rotation, translation);
-
-		// Return the transformed frustum that now is in world space.
-		return worldFrustum;
+		return mFrustum.GetWorldFrustum(GetViewMatrix());
 	}
 
 	//! Returns the ray from the camera origin in world space.

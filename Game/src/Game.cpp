@@ -200,7 +200,6 @@ void Game::InitWorld()
 	GLib::GlobalApp::GetGraphics()->SetLightList(mWorld->GetLights());
 }
 
-
 //! Called when the window gets resized.
 void Game::OnResize(int width, int height)
 {

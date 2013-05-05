@@ -2,6 +2,7 @@
 
 #include "Chunk.h"
 #include "Frustum.h"
+#include <unordered_map>
 
 namespace GLib {
 	class Graphics;
@@ -62,8 +63,8 @@ public:
 
 	void AddVoxel(float x, float y, float z);
 
-	static const int MAX_CHUNKS_LOADED_PER_FRAME = 1;
-	static const int CHUNK_LOAD_RADIUS = 4; // Load chunks within this radius from the camera.
+	static int MAX_CHUNKS_LOADED_PER_FRAME;
+	static int CHUNK_LOAD_RADIUS; // Load chunks within this radius from the camera.
 private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;

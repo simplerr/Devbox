@@ -13,7 +13,7 @@ namespace Logger
 	void GLIB_API SetDisplayFlags(unsigned char flags);
 }
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 #define GLIB_ASSERT(expr) \
 	do \
@@ -55,7 +55,7 @@ namespace Logger
 		Logger::Log("WARNING", str, __FUNCTION__,  __FILE__, __LINE__); \
 	} while(0) \
 
-#endif
+//#endif
 
 // Logger flags.
 const unsigned char LOGFLAG_WRITE_TO_FILE = 1 << 0;

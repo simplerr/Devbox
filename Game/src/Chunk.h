@@ -57,10 +57,21 @@ struct ChunkIndex
 		this->x = x;
 		this->z = z;
 	}
+
 	int x, z;
 };
 
+struct ChunkIndexHash
+{
+	std::size_t operator()(const ChunkIndex& k) const
+	{
+		// You may want to use a better hash function
+		return static_cast<std::size_t>(k.x) ^ static_cast<std::size_t>(k.z);
+	}
+};
+
 bool operator<(const ChunkIndex a, const ChunkIndex b);
+bool operator==(const ChunkIndex& lhs, const ChunkIndex& rhs);
 
 /******************************************************************************************//**
 * The position of a chunk is in the "left bottom" corner, not in the center.
@@ -108,7 +119,7 @@ public:
 	void BuildLandscape();
 
 	static const int CHUNK_SIZE = 16;
-	static const int VOXEL_SIZE = 4;
+	static const int VOXEL_SIZE = 2;
 
 private:
 	Block*** mBlocks;

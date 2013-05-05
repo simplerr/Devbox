@@ -17,6 +17,9 @@ int quadtree_counter = 0;
 GLib::Frustum testFrustum;
 XMFLOAT3 testCameraPos;
 
+int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
+int ChunkManager::CHUNK_LOAD_RADIUS = 10;
+
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
 	return a.distance < b.distance;
@@ -145,6 +148,9 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	for(int i = 0; i < mRenderList.size(); i++)
 	{
 		mRenderList[i]->Render(pGraphics);
+
+		if(mDrawDebug)
+			pGraphics->DrawBoundingBox(&mRenderList[i]->GetAxisAlignedBox(), GLib::Colors::Red, true, 1.0f);
 	}
 
 	// Debug information.
@@ -206,7 +212,7 @@ void ChunkManager::UpdateRenderList()
 	XMFLOAT3 chunkAlignedCameraPos = (ChunkAlignPosition(cameraPos));
 
 	// Traverse a quadtree to quickly find out which chunks are visible.
-	TraverseQuadtree(chunkAlignedCameraPos, 32, GLib::GlobalApp::GetCamera()->GetFrustum());
+	TraverseQuadtree(chunkAlignedCameraPos, 16, GLib::GlobalApp::GetCamera()->GetFrustum());
 
 	//OldFrustumCulling();
 }

@@ -22,6 +22,11 @@ bool operator<(const ChunkIndex a, const ChunkIndex b)
 	return (a.x < b.x) || (a.x==b.x && a.z < b.z);
 }
 
+bool operator==(const ChunkIndex& lhs, const ChunkIndex& rhs)
+{
+	return lhs.x == rhs.x && lhs.z == rhs.z;
+}
+
 Chunk::Chunk(float x, float y, float z)
 {
 	// Create the blocks.
@@ -63,6 +68,7 @@ Chunk::~Chunk()
 void Chunk::Init()
 {
 	BuildLandscape();
+	//BuildSphere();
 
 	CreateMesh();
 	mPrimitive = new GLib::Primitive;
@@ -100,7 +106,7 @@ void Chunk::CreateMesh()
 
 					// Only add cube if not surrounded by active blocks.
 					if(!allNeighborsActive)
-						AddCube(mPosition.x + x*VOXEL_SIZE + VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + VOXEL_SIZE/2);
+						AddCube(mPosition.x + x*VOXEL_SIZE + (float)VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + (float)VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + (float)VOXEL_SIZE/2);
 				}
 				else
 				{
@@ -190,9 +196,6 @@ void Chunk::Render(GLib::Graphics* pGraphics)
 	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());
 
 	mPrimitive->Draw<VoxelVertex>(GLib::GlobalApp::GetD3DContext());
-
-	float size = CHUNK_SIZE * VOXEL_SIZE;
-	float localCenter = size / 2;
 }
 
 BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)

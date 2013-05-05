@@ -1,5 +1,8 @@
 #pragma once
 
+#define _SECURE_SCL 0
+#define _SCL_SECURE_NO_WARNINGS 
+
 // Linking to 3d party tools
 #ifdef _DEBUG 
 #pragma comment(lib, "../debug/assimp_d.lib")

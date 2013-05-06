@@ -183,18 +183,10 @@ void Chunk::Rebuild()
 
 void Chunk::Render(GLib::Graphics* pGraphics)
 {
-	// Set the input layout and the primitive topology.
-	GlobalApp::GetD3DContext()->IASetInputLayout(Effects::VoxelFX->GetInputLayout());
-	GlobalApp::GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
 
-	XMMATRIX view = XMLoadFloat4x4(&GLib::GlobalApp::GetGraphics()->GetCamera()->GetViewMatrix());
-	XMMATRIX proj = XMLoadFloat4x4(&GLib::GlobalApp::GetGraphics()->GetCamera()->GetProjectionMatrix());
-
-	GLib::Effects::VoxelFX->SetColor(mColor);
-	GLib::Effects::VoxelFX->SetWorld(XMMatrixIdentity());
-	GLib::Effects::VoxelFX->SetWorldViewProj(XMMatrixIdentity() * view * proj);
-	Effects::BasicFX->SetWorldInvTranspose(InverseTranspose(XMMatrixIdentity()));
-	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());
+	//GLib::Effects::VoxelFX->SetColor(mColor);
+	
 
 	mPrimitive->Draw<VoxelVertex>(GLib::GlobalApp::GetD3DContext());
 }

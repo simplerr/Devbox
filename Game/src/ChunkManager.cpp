@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "xnacollision.h"
 #include <xnamath.h>
+#include "VoxelEffect.h"
 
 GLib::VoxelVertex ChunkManager::TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
 UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
@@ -165,6 +166,18 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	// Do frustum culling using a quadtree to ignore invisible chunks.
 	// Do this here in Draw() so we can draw debug information.
 	UpdateRenderList();
+
+	// Set the input layout and the primitive topology.
+	GLib::GlobalApp::GetD3DContext()->IASetInputLayout(GLib::Effects::VoxelFX->GetInputLayout());
+	GLib::GlobalApp::GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	XMMATRIX view = XMLoadFloat4x4(&GLib::GlobalApp::GetGraphics()->GetCamera()->GetViewMatrix());
+	XMMATRIX proj = XMLoadFloat4x4(&GLib::GlobalApp::GetGraphics()->GetCamera()->GetProjectionMatrix());
+
+	GLib::Effects::VoxelFX->SetWorld(XMMatrixIdentity());
+	GLib::Effects::VoxelFX->SetWorldViewProj(XMMatrixIdentity() * view * proj);
+	GLib::Effects::VoxelFX->SetColor(GLib::Colors::LightSteelBlue);
+	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());
 
 	for(int i = 0; i < mRenderList.size(); i++)
 	{

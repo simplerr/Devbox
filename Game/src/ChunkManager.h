@@ -97,3 +97,5 @@ public:
 	static GLib::VoxelVertex TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_HEIGHT*Chunk::CHUNK_SIZE];
 	static UINT TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_HEIGHT*Chunk::CHUNK_SIZE];
 };
+
+double stopwatch();

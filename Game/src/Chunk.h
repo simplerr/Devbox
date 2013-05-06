@@ -35,8 +35,8 @@ struct BlockIndex
 class Block
 {
 public:
-	Block() {
-		mActive = (rand() % 100 == 0 ? false : false);
+	Block() : mActive(false) {
+
 	}
 
 	~Block() {};
@@ -122,7 +122,9 @@ public:
 	static const int VOXEL_SIZE = 2;
 
 private:
-	Block*** mBlocks;
+	bool mBlocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+	int mBlockTypes[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+
 	GLib::Primitive* mPrimitive;
 	XMFLOAT3 mPosition;
 	ChunkCoord mChunkIndex;

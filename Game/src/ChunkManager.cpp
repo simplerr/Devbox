@@ -22,6 +22,19 @@ int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
 int ChunkManager::CHUNK_LOAD_RADIUS = 10;
 int ChunkManager::WORLD_SIZE_IN_CHUNKS = 256;
 
+double stopwatch() 
+{
+	unsigned long long ticks;
+	unsigned long long ticks_per_sec;
+	QueryPerformanceFrequency( (LARGE_INTEGER *)&ticks_per_sec);
+	QueryPerformanceCounter((LARGE_INTEGER *)&ticks);
+	return ((float)ticks) / (float)ticks_per_sec;
+}
+
+float startTime = stopwatch();
+
+int totalChunksLoaded = 0;
+
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
 	return a.distance < b.distance;
@@ -72,6 +85,11 @@ void ChunkManager::Update(float dt)
 {
 	UpdateLoadList();
 	LoadChunks();
+
+	if(totalChunksLoaded == CHUNK_LOAD_RADIUS*CHUNK_LOAD_RADIUS*4) {
+		float end = stopwatch() - startTime;
+		int a = 1;
+	}
 
 	auto input = GLib::GlobalApp::GetInput();
 
@@ -209,6 +227,7 @@ void ChunkManager::LoadChunks()
 
 			int index = ChunkCoordToIndex(mLoadList[i]);
 
+			totalChunksLoaded++;
 			chunksLoaded++;
 		}
 		else

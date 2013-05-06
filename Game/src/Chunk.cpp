@@ -27,21 +27,21 @@ bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs)
 	return lhs.x == rhs.x && lhs.z == rhs.z;
 }
 
-Chunk::Chunk(float _x, float _y, float _z)
+Chunk::Chunk(float x, float y, float z) 
 {
-	// Create the blocks.
-	mBlocks = new Block**[CHUNK_SIZE];
 	for(int x = 0; x < CHUNK_SIZE; x++)
 	{
-		mBlocks[x] = new Block*[CHUNK_HEIGHT];
-
 		for(int y = 0; y < CHUNK_HEIGHT; y++)
 		{
-			mBlocks[x][y] = new Block[CHUNK_SIZE];
+			for(int z = 0; z < CHUNK_SIZE; z++)
+			{
+				mBlocks[x][y][z] = false;
+				mBlockTypes[x][y][z] = BlockType_Grass;
+			}
 		}
 	}
 
-	mPosition = XMFLOAT3(_x, _y, _z);
+	mPosition = XMFLOAT3(x, y, z);
 
 	mBlockCount = 0;
 	mRebuildFlag = false;
@@ -52,17 +52,7 @@ Chunk::Chunk(float _x, float _y, float _z)
 
 Chunk::~Chunk()
 {
-	// Delete the blocks
-	for (int x = 0; x < CHUNK_SIZE; ++x)
-	{
-		for (int y = 0; y < CHUNK_HEIGHT; ++y)
-		{
-			delete [] mBlocks[x][y];
-		}
-
-		delete [] mBlocks[x];
-	}
-	delete [] mBlocks;
+	
 }
 
 void Chunk::Init()
@@ -84,25 +74,25 @@ void Chunk::CreateMesh()
 		{
 			for(int z = 0; z < CHUNK_SIZE; z++)
 			{
-				if(mBlocks[x][y][z].mActive)
+				if(mBlocks[x][y][z])
 				{
 					// If all surrounding blocks are active then this block
 					// don't need to be rendered.
 					bool allNeighborsActive = true;
 					if(x > 0)
-						allNeighborsActive = mBlocks[x-1][y][z].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x-1][y][z] ? allNeighborsActive : false;
 					if(x < CHUNK_SIZE-1)
-						allNeighborsActive = mBlocks[x+1][y][z].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x+1][y][z] ? allNeighborsActive : false;
 
 					if(y > 0)
-						allNeighborsActive = mBlocks[x][y-1][z].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y-1][z] ? allNeighborsActive : false;
 					if(y < CHUNK_HEIGHT-1)
-						allNeighborsActive = mBlocks[x][y+1][z].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y+1][z] ? allNeighborsActive : false;
 
 					if(z > 0)
-						allNeighborsActive = mBlocks[x][y][z-1].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y][z-1] ? allNeighborsActive : false;
 					if(z < CHUNK_SIZE-1)
-						allNeighborsActive = mBlocks[x][y][z+1].mActive ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y][z+1] ? allNeighborsActive : false;
 
 					// Only add cube if not surrounded by active blocks.
 					if(!allNeighborsActive)
@@ -130,7 +120,7 @@ void Chunk::BuildLandscape()
 			height = max(1, height);
 			for(int y = 0; y < height; y++)
 			{
-				mBlocks[x][y][z].SetActive(true);
+				mBlocks[x][y][z] = true;
 			}
 		}
 	}
@@ -149,7 +139,7 @@ void Chunk::BuildSphere()
 				float Z = z - CHUNK_SIZE/2;
 
 				if(sqrt(X*X + Y*Y + Z*Z) < CHUNK_SIZE/2)
-					mBlocks[x][y][z].SetActive(true);
+					mBlocks[x][y][z] = true;
 			}
 		}
 	}
@@ -306,10 +296,10 @@ void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)
 {
 	if(blockIndex.x >= 0 && blockIndex.x < CHUNK_SIZE && blockIndex.y >= 0 && blockIndex.y < CHUNK_HEIGHT && blockIndex.z >= 0 && blockIndex.z < CHUNK_SIZE)
 	{
-		if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z].IsActive() != active)
+		if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z] != active)
 			SetRebuildFlag();
 
-		mBlocks[blockIndex.x][blockIndex.y][blockIndex.z].SetActive(active);
+		mBlocks[blockIndex.x][blockIndex.y][blockIndex.z] = active;
 	}
 	else
 	{

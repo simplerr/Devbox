@@ -20,7 +20,9 @@ XMFLOAT3 testCameraPos;
 
 int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
 int ChunkManager::CHUNK_LOAD_RADIUS = 10;
-int ChunkManager::WORLD_SIZE_IN_CHUNKS = 256;
+int ChunkManager::WORLD_SIZE_IN_CHUNKS = 512;
+
+ChunkCoord ChunkManager::PlayerChunkCoord = ChunkCoord();
 
 double stopwatch() 
 {
@@ -40,6 +42,14 @@ bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 	return a.distance < b.distance;
 }
 
+bool LoadListCompare(ChunkCoord a, ChunkCoord b)
+{
+	ChunkCoord diff_a = a - ChunkManager::PlayerChunkCoord;
+	ChunkCoord diff_b = b - ChunkManager::PlayerChunkCoord;
+
+	return sqrt(diff_a.x * diff_a.x + diff_a.z *diff_a.z) < sqrt(diff_b.x * diff_b.x + diff_b.z *diff_b.z);
+}
+
 ChunkManager::ChunkManager()
 {
 	// Debug stuff
@@ -55,13 +65,13 @@ ChunkManager::ChunkManager()
 	mDrawDebug = false;
 }
 
+ChunkManager::~ChunkManager()
+{
+	Clear();
+}
+
 void ChunkManager::Clear()
 {
-	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
-	{
-		delete (*iter);
-	}
-
 	mChunkMap.clear();
 }
 
@@ -85,6 +95,8 @@ void ChunkManager::Update(float dt)
 {
 	UpdateLoadList();
 	LoadChunks();
+
+	PlayerChunkCoord = PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition());
 
 	if(totalChunksLoaded == CHUNK_LOAD_RADIUS*CHUNK_LOAD_RADIUS*4) {
 		float end = stopwatch() - startTime;
@@ -220,7 +232,7 @@ void ChunkManager::LoadChunks()
 		if(chunksLoaded != MAX_CHUNKS_LOADED_PER_FRAME)
 		{
 			// Create the chunk.
-			Chunk* chunk = new Chunk(mLoadList[i].x*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, mLoadList[i].z*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE);
+			StrongChunkPtr chunk = StrongChunkPtr(new Chunk(mLoadList[i].x*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE, 0, mLoadList[i].z*Chunk::CHUNK_SIZE*Chunk::VOXEL_SIZE));
 			chunk->SetChunkIndex(mLoadList[i]);
 			chunk->Init();
 			mChunkMap[ChunkCoordToIndex(mLoadList[i])] =  chunk;
@@ -258,6 +270,10 @@ void ChunkManager::UpdateLoadList()
 			}
 		}
 	}
+
+	// Sort the load list by distance from the player.
+	if(mLoadList.size() != 0)
+		std::sort(mLoadList.begin(), mLoadList.end(), LoadListCompare);
 }
 
 void ChunkManager::UpdateRenderList()
@@ -269,7 +285,7 @@ void ChunkManager::UpdateRenderList()
 	XMFLOAT3 chunkAlignedCameraPos = (ChunkAlignPosition(cameraPos));
 
 	// Traverse a quadtree to quickly find out which chunks are visible.
-	TraverseQuadtree(chunkAlignedCameraPos, 32, GLib::GlobalApp::GetCamera()->GetFrustum());
+	TraverseQuadtree(chunkAlignedCameraPos, 32, GLib::GlobalApp::GetCamera()->GetFrustum()); // testFrustum
 
 	//OldFrustumCulling();
 }
@@ -313,7 +329,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 			// They are calculated from the center of the current quad using an offset.
 
 			// Loop through and test frustum intersection on the chunks.
-			Chunk* chunk = nullptr;
+			StrongChunkPtr chunk = nullptr;
 
 			ChunkId index = ChunkCoordToIndex(PositionToChunkCoord(center.x - offset , center.z - offset));
 			if(InBounds(index))
@@ -371,7 +387,7 @@ void ChunkManager::OldFrustumCulling()
 
 	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
 	{
-		Chunk* chunk = (*iter);
+		StrongChunkPtr chunk = (*iter);
 
 		// Inside frustum, add to the render list.
 		if(GLib::GLibIntersectAxisAlignedBoxFrustum(&chunk->GetAxisAlignedBox(), &frustum))

@@ -35,12 +35,16 @@ struct Voxel
 
 
 typedef int ChunkId;
+typedef shared_ptr<Chunk> StrongChunkPtr;
+
+
 const ChunkId INVALID_CHUNK_ID = 0;
 
 class ChunkManager
 {
 public:
 	ChunkManager();
+	~ChunkManager();
 
 	void Clear();
 	void Update(float dt);
@@ -66,6 +70,8 @@ public:
 	static int MAX_CHUNKS_LOADED_PER_FRAME;
 	static int CHUNK_LOAD_RADIUS; // Load chunks within this radius from the camera.
 	static int WORLD_SIZE_IN_CHUNKS;
+
+	static ChunkCoord PlayerChunkCoord;
 private:
 	ChunkId GetNextChunkId();
 	ChunkId mLastChunkId;
@@ -79,10 +85,10 @@ private:
 	int ChunkCoordToIndex(const ChunkCoord& index);
 private:
 	// All chunks.
-	vector<Chunk*> mChunkMap;
+	vector<StrongChunkPtr> mChunkMap;
 
 	// Chunks that should be rendered (tested with frustum culling before getting into this list)
-	vector<Chunk*> mRenderList;
+	vector<StrongChunkPtr> mRenderList;
 
 	// Chunks that needs to loaded depending on the players (cameras) position.
 	vector<ChunkCoord> mLoadList;

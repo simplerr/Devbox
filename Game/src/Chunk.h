@@ -71,6 +71,7 @@ struct ChunkIndexHash
 
 bool operator<(const ChunkCoord a, const ChunkCoord b);
 bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs);
+ChunkCoord& operator-(const ChunkCoord& lhs, const ChunkCoord& rhs);
 
 /******************************************************************************************//**
 * The position of a chunk is in the "left bottom" corner, not in the center.

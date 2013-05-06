@@ -68,6 +68,7 @@ Game::Game(HINSTANCE hInstance, string caption, int width, int height)
 Game::~Game()
 {
 	Logger::Destroy();
+	delete mChunkManager;
 }
 
 void Game::Init()

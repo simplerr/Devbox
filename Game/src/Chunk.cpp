@@ -27,6 +27,15 @@ bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs)
 	return lhs.x == rhs.x && lhs.z == rhs.z;
 }
 
+ChunkCoord& operator-(const ChunkCoord& lhs, const ChunkCoord& rhs)
+{
+	ChunkCoord ret;
+	ret.x = lhs.x - rhs.x;
+	ret.z = lhs.z - rhs.z;
+
+	return ret;
+}
+
 Chunk::Chunk(float x, float y, float z) 
 {
 	for(int x = 0; x < CHUNK_SIZE; x++)

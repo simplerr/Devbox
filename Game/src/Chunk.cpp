@@ -17,12 +17,12 @@ using namespace GLib;
 noise::module::Perlin Chunk::perlin;
 
 // The < operator for ChunkIndex.
-bool operator<(const ChunkIndex a, const ChunkIndex b)
+bool operator<(const ChunkCoord a, const ChunkCoord b)
 {
 	return (a.x < b.x) || (a.x==b.x && a.z < b.z);
 }
 
-bool operator==(const ChunkIndex& lhs, const ChunkIndex& rhs)
+bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs)
 {
 	return lhs.x == rhs.x && lhs.z == rhs.z;
 }
@@ -84,25 +84,25 @@ void Chunk::CreateMesh()
 		{
 			for(int z = 0; z < CHUNK_SIZE; z++)
 			{
-				if(mBlocks[x][y][z].IsActive())
+				if(mBlocks[x][y][z].mActive)
 				{
 					// If all surrounding blocks are active then this block
 					// don't need to be rendered.
 					bool allNeighborsActive = true;
 					if(x > 0)
-						allNeighborsActive = mBlocks[x-1][y][z].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x-1][y][z].mActive ? allNeighborsActive : false;
 					if(x < CHUNK_SIZE-1)
-						allNeighborsActive = mBlocks[x+1][y][z].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x+1][y][z].mActive ? allNeighborsActive : false;
 
 					if(y > 0)
-						allNeighborsActive = mBlocks[x][y-1][z].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y-1][z].mActive ? allNeighborsActive : false;
 					if(y < CHUNK_SIZE-1)
-						allNeighborsActive = mBlocks[x][y+1][z].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y+1][z].mActive ? allNeighborsActive : false;
 
 					if(z > 0)
-						allNeighborsActive = mBlocks[x][y][z-1].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y][z-1].mActive ? allNeighborsActive : false;
 					if(z < CHUNK_SIZE-1)
-						allNeighborsActive = mBlocks[x][y][z+1].IsActive() ? allNeighborsActive : false;
+						allNeighborsActive = mBlocks[x][y][z+1].mActive ? allNeighborsActive : false;
 
 					// Only add cube if not surrounded by active blocks.
 					if(!allNeighborsActive)
@@ -174,6 +174,7 @@ void Chunk::Rebuild()
 
 	// Restore the block count.
 	mBlockCount = 0;
+	BuildSphere();
 	CreateMesh();
 	BuildMeshPrimitive();
 
@@ -304,7 +305,7 @@ void Chunk::SetRebuildFlag()
 	mRebuildFlag = true;
 }
 
-void Chunk::SetChunkIndex(ChunkIndex index)
+void Chunk::SetChunkIndex(ChunkCoord index)
 {
 	mChunkIndex = index;
 }

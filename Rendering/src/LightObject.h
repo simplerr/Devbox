@@ -10,7 +10,7 @@ namespace GLib {
 	//!
 	//	Represents an object containing a light source.
 	//!
-	class LightObject : public Object3D
+	class GLIB_API LightObject : public Object3D
 	{
 	public:
 		LightObject();

@@ -24,20 +24,24 @@ namespace GLib
 	{
 		mIdCounter = 0;
 		mLightIdCounter = 0;
+		mTerrain = nullptr;
 	}
 
 	//! Init.
-	void World::Init(Graphics* pGraphics)
+	void World::Init(Graphics* pGraphics, bool loadFromFile)
 	{
 		// Create the sky box.
 		//mSkyBox = new Sky(pGraphics, "data/textures/grassenvmap1024.dds", 1000.0f);
 
-		// Create the terrain.
-		mTerrain = new Terrain();
+		if(loadFromFile)
+		{
+			// Create the terrain.
+			mTerrain = new Terrain();
 
-		// Create the world loader.
-		mWorldLoader = new WorldLoader();
-		mWorldLoader->LoadWorld(this, mTerrain, "data/world.wmap");
+			// Create the world loader.
+			mWorldLoader = new WorldLoader();
+			mWorldLoader->LoadWorld(this, mTerrain, "data/world.wmap");
+		}
 	}
 
 	//! Cleanup the object and light lists.
@@ -104,7 +108,8 @@ namespace GLib
 		pGraphics->DeactiveShadowMap();*/
 
 		// Draw the terrain.
-		mTerrain->Draw(pGraphics);
+		if(mTerrain)
+			mTerrain->Draw(pGraphics);
 
 		// Draw the skybox. [TODO] if(mDrawSkyBox)
 		//mSkyBox->Draw(pGraphics);

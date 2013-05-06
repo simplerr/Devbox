@@ -28,7 +28,7 @@ namespace GLib {
 		World();
 		~World();
 
-		virtual void Init(Graphics* pGraphics);
+		virtual void Init(Graphics* pGraphics, bool loadFromFile = true);
 		virtual void Update(float dt);
 		virtual void Draw(Graphics* pGraphics);
 		void HandleCollisions();

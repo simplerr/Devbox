@@ -64,13 +64,40 @@ namespace GLib
 	struct VoxelVertex
 	{
 		VoxelVertex() {}
-		VoxelVertex(float x, float y, float z, float nx, float ny, float nz)
-			: Position(XMFLOAT3(x, y, z)), Normal(XMFLOAT3(nx, ny, nz)) {}
+		VoxelVertex(const float& x, const float& y, const float& z, const float& nx, const float& ny, const float& nz)
+		{
+			this->x = x;
+			this->y = y;
+			this->z = z;
+			this->nx = nx; 
+			this->ny = ny;
+			this->nz = nz;
+		}		//Position(XMFLOAT3(x, y, z)), Normal(XMFLOAT3(nx, ny, nz)) 
 		VoxelVertex(XMFLOAT3 pos, XMFLOAT3 normal)
-			: Position(pos), Normal(normal) {}
+		{
+			//: Position(pos), Normal(normal) {}
 
-		XMFLOAT3 Position;
-		XMFLOAT3 Normal;
+			this->x = pos.x;
+			this->y = pos.y;
+			this->z = pos.z;
+			this->nx = normal.x; 
+			this->ny = normal.y;
+			this->nz = normal.z;
+		}
+
+		/*const VoxelVertex& operator=(const VoxelVertex& vertex)
+		{
+			this->Normal = vertex.Normal;
+			this->Position = vertex.Position;
+
+			return *this;
+		}*/
+
+		float x, y, z;
+		float nx, ny, nz;
+
+		/*XMFLOAT3 Position;
+		XMFLOAT3 Normal;*/
 	};
 
 	struct BoundingBoxVertex

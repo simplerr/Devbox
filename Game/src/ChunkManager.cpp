@@ -19,7 +19,7 @@ XMFLOAT3 testCameraPos;
 
 int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
 int ChunkManager::CHUNK_LOAD_RADIUS = 10;
-int ChunkManager::WORLD_SIZE_IN_CHUNKS = 20;
+int ChunkManager::WORLD_SIZE_IN_CHUNKS = 256;
 
 bool ChunkIntersectionCompare(ChunkIntersection a, ChunkIntersection b)
 {
@@ -36,8 +36,7 @@ ChunkManager::ChunkManager()
 	mTestBox = XMFLOAT3(0, 0, 0);
 
 	mChunkMap.resize(WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS);
-	mLoadedChunks.resize(WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS);
-	mWorldCenterIndex = PositionToChunkIndex(testCameraPos);
+	mWorldCenterIndex = PositionToChunkCoord(testCameraPos);
 
 	mDrawDebug = false;
 }
@@ -52,15 +51,15 @@ void ChunkManager::Clear()
 	mChunkMap.clear();
 }
 
-bool ChunkManager::IsChunkLoaded(const int& chunkId)
+bool ChunkManager::IsChunkLoaded(const ChunkId& chunkId)
 {
-	if(!InBounds(chunkId))
-		GLIB_ERROR("Chunk out of bounds!");
-	else
+	//if(!InBounds(chunkId))
+	//	GLIB_ERROR("Chunk out of bounds!");
+	//else
 		return mChunkMap[chunkId] != nullptr;
 }
 
-int ChunkManager::ChunkCoordToIndex(const ChunkIndex& index)
+int ChunkManager::ChunkCoordToIndex(const ChunkCoord& index)
 {
 	int x = index.x - mWorldCenterIndex.x + WORLD_SIZE_IN_CHUNKS/2;
 	int z = index.z - mWorldCenterIndex.z + WORLD_SIZE_IN_CHUNKS/2;
@@ -74,6 +73,11 @@ void ChunkManager::Update(float dt)
 	LoadChunks();
 
 	auto input = GLib::GlobalApp::GetInput();
+
+	if(input->KeyPressed('F'))
+	{
+		mChunkMap[ChunkCoordToIndex(PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition()))]->Rebuild();
+	}
 
 	if(input->KeyPressed('C'))
 		testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
@@ -191,7 +195,6 @@ void ChunkManager::LoadChunks()
 			mChunkMap[ChunkCoordToIndex(mLoadList[i])] =  chunk;
 
 			int index = ChunkCoordToIndex(mLoadList[i]);
-			mLoadedChunks[ChunkCoordToIndex(mLoadList[i])] = true;
 
 			chunksLoaded++;
 		}
@@ -206,17 +209,18 @@ void ChunkManager::UpdateLoadList()
 {
 	// [TEMP][NOTE]
 	// Use the camera position for now.
-	XMFLOAT3 cameraPosition = GLib::GlobalApp::GetCamera()->GetPosition();
-	ChunkIndex playerIndex = PositionToChunkIndex(cameraPosition);
+	XMFLOAT3 cameraPosition = testCameraPos;//GLib::GlobalApp::GetCamera()->GetPosition();
+	ChunkCoord playerIndex = PositionToChunkCoord(cameraPosition);
 
 	for(int x = playerIndex.x - CHUNK_LOAD_RADIUS; x < playerIndex.x + CHUNK_LOAD_RADIUS; x++)
 	{
 		for(int z = playerIndex.z - CHUNK_LOAD_RADIUS; z < playerIndex.z + CHUNK_LOAD_RADIUS; z++)
 		{
 			// A needed chunk doesn't exist -> load it.
-			ChunkIndex chunkIndex = ChunkIndex(x, z);
+			ChunkCoord chunkIndex = ChunkCoord(x, z);
 
-			if(!IsChunkLoaded(ChunkCoordToIndex(chunkIndex)))//if(mChunkMap.find(chunkIndex) == mChunkMap.end())
+			ChunkId id = ChunkCoordToIndex(chunkIndex);
+			if(InBounds(id) && !IsChunkLoaded(id))//if(mChunkMap.find(chunkIndex) == mChunkMap.end())
 			{
 				mLoadList.push_back(chunkIndex);
 			}
@@ -233,7 +237,7 @@ void ChunkManager::UpdateRenderList()
 	XMFLOAT3 chunkAlignedCameraPos = (ChunkAlignPosition(cameraPos));
 
 	// Traverse a quadtree to quickly find out which chunks are visible.
-	TraverseQuadtree(chunkAlignedCameraPos, 16, GLib::GlobalApp::GetCamera()->GetFrustum());
+	TraverseQuadtree(chunkAlignedCameraPos, 32, GLib::GlobalApp::GetCamera()->GetFrustum());
 
 	//OldFrustumCulling();
 }
@@ -241,12 +245,12 @@ void ChunkManager::UpdateRenderList()
 XMFLOAT3 ChunkManager::ChunkAlignPosition(const XMFLOAT3& position)
 {
 	float chunkSize = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
-	ChunkIndex tempIndex  = PositionToChunkIndex(position);
+	ChunkCoord tempIndex  = PositionToChunkCoord(position);
 
 	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.z * chunkSize);
 }
 
-bool ChunkManager::InBounds(const int& chunkId)
+bool ChunkManager::InBounds(const ChunkId& chunkId)
 {
 	return chunkId >= 0 && chunkId < WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS;
 }
@@ -264,8 +268,8 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 	// Test AABB collision against the current quad (it's actually a cube but Y is always the same).
 	if(frustum.BoxIntersecting(aabb))
 	{
-		if(mDrawDebug)
-			GLib::GlobalApp::GetGraphics()->DrawBoundingBox(&aabb, GLib::Colors::Green, true, 1.0f);
+		//if(mDrawDebug)
+		//	GLib::GlobalApp::GetGraphics()->DrawBoundingBox(&aabb, GLib::Colors::Green, true, 1.0f);
 
 		// Reached the smallest size, now test the remaining 4 chunks individually.
 		if(radiusInChunks == 1)
@@ -279,7 +283,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 			// Loop through and test frustum intersection on the chunks.
 			Chunk* chunk = nullptr;
 
-			int index = ChunkCoordToIndex(PositionToChunkIndex(center.x - offset , center.z - offset));
+			ChunkId index = ChunkCoordToIndex(PositionToChunkCoord(center.x - offset , center.z - offset));
 			if(InBounds(index))
 			{
 				chunk = mChunkMap[index];
@@ -287,7 +291,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 					mRenderList.push_back(chunk);
 			}
 
-			index = ChunkCoordToIndex(PositionToChunkIndex(center.x + offset , center.z - offset));
+			index = ChunkCoordToIndex(PositionToChunkCoord(center.x + offset , center.z - offset));
 			if(InBounds(index))
 			{
 				chunk = mChunkMap[index];
@@ -295,7 +299,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 					mRenderList.push_back(chunk);
 			}
 
-			index = ChunkCoordToIndex(PositionToChunkIndex(center.x + offset , center.z + offset));
+			index = ChunkCoordToIndex(PositionToChunkCoord(center.x + offset , center.z + offset));
 			if(InBounds(index))
 			{
 				chunk = mChunkMap[index];
@@ -303,7 +307,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 					mRenderList.push_back(chunk);
 			}
 
-			index = ChunkCoordToIndex(PositionToChunkIndex(center.x - offset , center.z + offset));
+			index = ChunkCoordToIndex(PositionToChunkCoord(center.x - offset , center.z + offset));
 			if(InBounds(index))
 			{
 				chunk = mChunkMap[index];
@@ -347,20 +351,25 @@ void ChunkManager::DrawDebug(GLib::Graphics* pGraphics)
 {
 	// Count total blocks.
 	int totalBlocks = 0;
-	for(auto iter = mChunkMap.begin(); iter != mChunkMap.end(); iter++)
-		totalBlocks += (*iter)->GetNumBlocks();
+	for(int i = 0; i < mChunkMap.size(); i++)
+	{
+		if(mChunkMap[i] == nullptr)
+			continue;
 
-	ChunkIndex index = PositionToChunkIndex(GLib::GlobalApp::GetCamera()->GetPosition());
+		totalBlocks += mChunkMap[i]->GetNumBlocks();
+	}
+
+	ChunkCoord index = PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition());
 	char buffer[256];
-	sprintf(buffer, "Chunk index: [%i][%i]\nTotal blocks: %i\nTrees traversed: %i", index.x, index.z, totalBlocks, quadtree_counter);
+	sprintf(buffer, "Chunk index: [%i]\nChunk coord: [%i][%i]\nTotal blocks: %i\nTrees traversed: %i", ChunkCoordToIndex(index), index.x, index.z, totalBlocks, quadtree_counter);
 	pGraphics->DrawText(buffer, 40, 600, 30);
 
 	pGraphics->DrawText("Visible chunks: " + to_string(mRenderList.size()), 10, 500, 40);
 }
 
-ChunkIndex ChunkManager::PositionToChunkIndex(XMFLOAT3 position)
+ChunkCoord ChunkManager::PositionToChunkCoord(XMFLOAT3 position)
 {
-	ChunkIndex index(0, 0);
+	ChunkCoord index(0, 0);
 
 	float size = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
 
@@ -371,9 +380,9 @@ ChunkIndex ChunkManager::PositionToChunkIndex(XMFLOAT3 position)
 	return index;
 }
 
-ChunkIndex ChunkManager::PositionToChunkIndex(float x, float z)
+ChunkCoord ChunkManager::PositionToChunkCoord(float x, float z)
 {
-	ChunkIndex index(0, 0);
+	ChunkCoord index(0, 0);
 
 	float size = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
 

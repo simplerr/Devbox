@@ -41,18 +41,17 @@ public:
 
 	~Block() {};
 
-	bool IsActive()	{ return mActive; }
+	inline const bool& IsActive()	{ return mActive; }
 	void SetActive(bool active) { mActive = active; }
 
-private:
 	BlockType mBlockType;
 	bool mActive;
 };
 
-struct ChunkIndex
+struct ChunkCoord
 {
-	ChunkIndex() { x = z = 0;}
-	ChunkIndex(int x, int z)
+	ChunkCoord() { x = z = 0;}
+	ChunkCoord(int x, int z)
 	{
 		this->x = x;
 		this->z = z;
@@ -63,15 +62,15 @@ struct ChunkIndex
 
 struct ChunkIndexHash
 {
-	std::size_t operator()(const ChunkIndex& k) const
+	std::size_t operator()(const ChunkCoord& k) const
 	{
 		// You may want to use a better hash function
 		return static_cast<std::size_t>(k.x) ^ static_cast<std::size_t>(k.z);
 	}
 };
 
-bool operator<(const ChunkIndex a, const ChunkIndex b);
-bool operator==(const ChunkIndex& lhs, const ChunkIndex& rhs);
+bool operator<(const ChunkCoord a, const ChunkCoord b);
+bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs);
 
 /******************************************************************************************//**
 * The position of a chunk is in the "left bottom" corner, not in the center.
@@ -105,7 +104,7 @@ public:
 	void SetColor(XMFLOAT4 color);
 	void SetBlockActive(BlockIndex blockIndex, bool active);
 	void SetRebuildFlag();
-	void SetChunkIndex(ChunkIndex index);
+	void SetChunkIndex(ChunkCoord index);
 
 	XMFLOAT3 GetPosition();
 	XNA::AxisAlignedBox GetAxisAlignedBox();
@@ -118,14 +117,14 @@ public:
 	void BuildSphere();
 	void BuildLandscape();
 
-	static const int CHUNK_SIZE = 16;
+	static const int CHUNK_SIZE = 32;
 	static const int VOXEL_SIZE = 2;
 
 private:
 	Block*** mBlocks;
 	GLib::Primitive* mPrimitive;
 	XMFLOAT3 mPosition;
-	ChunkIndex mChunkIndex;
+	ChunkCoord mChunkIndex;
 	int mBlockCount;
 	bool mRebuildFlag;
 

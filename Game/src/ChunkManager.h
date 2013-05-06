@@ -34,7 +34,7 @@ struct Voxel
 };
 
 
-typedef unsigned int ChunkId;
+typedef int ChunkId;
 const ChunkId INVALID_CHUNK_ID = 0;
 
 class ChunkManager
@@ -58,8 +58,8 @@ public:
 	void LoadChunks();
 
 	//ChunkId PositionToChunkId(XMFLOAT3 position);
-	ChunkIndex PositionToChunkIndex(XMFLOAT3 position);
-	ChunkIndex PositionToChunkIndex(float x, float z);
+	ChunkCoord PositionToChunkCoord(XMFLOAT3 position);
+	ChunkCoord PositionToChunkCoord(float x, float z);
 
 	void AddVoxel(float x, float y, float z);
 
@@ -74,9 +74,9 @@ private:
 	void OldFrustumCulling();
 	XMFLOAT3 ChunkAlignPosition(const XMFLOAT3& position);
 
-	bool IsChunkLoaded(const int& chunkId);
-	bool InBounds(const int& chunkId);
-	int ChunkCoordToIndex(const ChunkIndex& index);
+	bool IsChunkLoaded(const ChunkId& chunkId);
+	bool InBounds(const ChunkId& chunkId);
+	int ChunkCoordToIndex(const ChunkCoord& index);
 private:
 	// All chunks.
 	vector<Chunk*> mChunkMap;
@@ -85,10 +85,9 @@ private:
 	vector<Chunk*> mRenderList;
 
 	// Chunks that needs to loaded depending on the players (cameras) position.
-	vector<ChunkIndex> mLoadList;
+	vector<ChunkCoord> mLoadList;
 
-	vector<bool> mLoadedChunks;
-	ChunkIndex mWorldCenterIndex;
+	ChunkCoord mWorldCenterIndex;
 
 	XMFLOAT3 mTestBox;
 

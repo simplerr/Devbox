@@ -25,6 +25,7 @@
 #include "ScriptComponent.h"
 #include "ScriptExports.h"
 #include "ChunkManager.h"
+#include "LightObject.h"
 
 using namespace GLib;
 
@@ -191,7 +192,15 @@ void Game::InitWorld()
 	GetGraphics()->SetFogColor(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f));
 
 	mWorld = new World();
-	mWorld->Init(GetGraphics());
+	mWorld->Init(GetGraphics(), false);
+
+	GLib::LightObject* light = new GLib::LightObject();
+	light->SetPosition(XMFLOAT3(20, 50, 20));
+	light->SetRotation(XMFLOAT3(1, -0.5, 0));
+	light->SetLightType(DIRECTIONAL_LIGHT);
+	light->SetMaterials(GLib::Material(GLib::Colors::White));
+
+	mWorld->AddObject(light);
 
 	mChunkManager = new ChunkManager;
 

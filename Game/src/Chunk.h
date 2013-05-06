@@ -117,7 +117,7 @@ public:
 	void BuildSphere();
 	void BuildLandscape();
 
-	static const int CHUNK_HEIGHT = 64;
+	static const int CHUNK_HEIGHT = 128;
 	static const int CHUNK_SIZE = 32;
 	static const int VOXEL_SIZE = 2;
 

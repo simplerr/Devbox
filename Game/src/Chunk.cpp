@@ -27,21 +27,21 @@ bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs)
 	return lhs.x == rhs.x && lhs.z == rhs.z;
 }
 
-Chunk::Chunk(float x, float y, float z)
+Chunk::Chunk(float _x, float _y, float _z)
 {
 	// Create the blocks.
 	mBlocks = new Block**[CHUNK_SIZE];
-	for(int i = 0; i < CHUNK_SIZE; i++)
+	for(int x = 0; x < CHUNK_SIZE; x++)
 	{
-		mBlocks[i] = new Block*[CHUNK_SIZE];
+		mBlocks[x] = new Block*[CHUNK_HEIGHT];
 
-		for(int j = 0; j < CHUNK_SIZE; j++)
+		for(int y = 0; y < CHUNK_HEIGHT; y++)
 		{
-			mBlocks[i][j] = new Block[CHUNK_SIZE];
+			mBlocks[x][y] = new Block[CHUNK_SIZE];
 		}
 	}
 
-	mPosition = XMFLOAT3(x, y, z);
+	mPosition = XMFLOAT3(_x, _y, _z);
 
 	mBlockCount = 0;
 	mRebuildFlag = false;
@@ -53,14 +53,14 @@ Chunk::Chunk(float x, float y, float z)
 Chunk::~Chunk()
 {
 	// Delete the blocks
-	for (int i = 0; i < CHUNK_SIZE; ++i)
+	for (int x = 0; x < CHUNK_SIZE; ++x)
 	{
-		for (int j = 0; j < CHUNK_SIZE; ++j)
+		for (int y = 0; y < CHUNK_HEIGHT; ++y)
 		{
-			delete [] mBlocks[i][j];
+			delete [] mBlocks[x][y];
 		}
 
-		delete [] mBlocks[i];
+		delete [] mBlocks[x];
 	}
 	delete [] mBlocks;
 }
@@ -80,7 +80,7 @@ void Chunk::CreateMesh()
 {
 	for(int x = 0; x < CHUNK_SIZE; x++)
 	{
-		for(int y = 0; y < CHUNK_SIZE; y++)
+		for(int y = 0; y < CHUNK_HEIGHT; y++)
 		{
 			for(int z = 0; z < CHUNK_SIZE; z++)
 			{
@@ -96,7 +96,7 @@ void Chunk::CreateMesh()
 
 					if(y > 0)
 						allNeighborsActive = mBlocks[x][y-1][z].mActive ? allNeighborsActive : false;
-					if(y < CHUNK_SIZE-1)
+					if(y < CHUNK_HEIGHT-1)
 						allNeighborsActive = mBlocks[x][y+1][z].mActive ? allNeighborsActive : false;
 
 					if(z > 0)
@@ -124,9 +124,9 @@ void Chunk::BuildLandscape()
 		for(int z = 0; z < CHUNK_SIZE; z++)
 		{
 			// Read noise value here...
-			float height = perlin.GetValue((float)(mChunkIndex.x * CHUNK_SIZE + x)/100, 0, (float)(mChunkIndex.z * CHUNK_SIZE + z)/100);
+			float height = perlin.GetValue((float)(mChunkIndex.x * CHUNK_SIZE + x)/500, 0, (float)(mChunkIndex.z * CHUNK_SIZE + z)/500);
 
-			height = min(CHUNK_SIZE-1, height*(CHUNK_SIZE-1));
+			height = min(CHUNK_HEIGHT-1, height*(CHUNK_HEIGHT-1));
 			height = max(1, height);
 			for(int y = 0; y < height; y++)
 			{
@@ -140,12 +140,12 @@ void Chunk::BuildSphere()
 {
 	for(int x = 0; x < CHUNK_SIZE; x++)
 	{
-		for(int y = 0; y < CHUNK_SIZE; y++)
+		for(int y = 0; y < CHUNK_HEIGHT; y++)
 		{
 			for(int z = 0; z < CHUNK_SIZE; z++)
 			{
 				float X = x - CHUNK_SIZE/2;
-				float Y = y - CHUNK_SIZE/2;
+				float Y = y - CHUNK_HEIGHT/2;
 				float Z = z - CHUNK_SIZE/2;
 
 				if(sqrt(X*X + Y*Y + Z*Z) < CHUNK_SIZE/2)
@@ -266,8 +266,8 @@ XNA::AxisAlignedBox Chunk::GetAxisAlignedBox()
 	XNA::AxisAlignedBox aabb;
 	float size = CHUNK_SIZE * VOXEL_SIZE;
 	float localCenter = size / 2;
-	aabb.Center = mPosition + XMFLOAT3(localCenter, localCenter, localCenter);
-	aabb.Extents = XMFLOAT3(size/2, size/2, size/2);
+	aabb.Center = mPosition + XMFLOAT3(localCenter, CHUNK_HEIGHT*VOXEL_SIZE/2, localCenter);
+	aabb.Extents = XMFLOAT3(size/2, CHUNK_HEIGHT*VOXEL_SIZE/2, size/2);
 
 	return aabb;
 }
@@ -304,7 +304,7 @@ void Chunk::SetChunkIndex(ChunkCoord index)
 
 void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)
 {
-	if(blockIndex.x >= 0 && blockIndex.x < CHUNK_SIZE && blockIndex.y >= 0 && blockIndex.y < CHUNK_SIZE && blockIndex.z >= 0 && blockIndex.z < CHUNK_SIZE)
+	if(blockIndex.x >= 0 && blockIndex.x < CHUNK_SIZE && blockIndex.y >= 0 && blockIndex.y < CHUNK_HEIGHT && blockIndex.z >= 0 && blockIndex.z < CHUNK_SIZE)
 	{
 		if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z].IsActive() != active)
 			SetRebuildFlag();
@@ -328,7 +328,7 @@ void Chunk::AddCube(int x, int y, int z)
 
 	// [HACK] Avoid writing outside the vertices array, don't know why
 	// it only happens after a while.
-	if(mBlockCount == CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE)
+	if(mBlockCount == CHUNK_SIZE*CHUNK_HEIGHT*CHUNK_SIZE)
 		return;
 
 	// Fill in the front face vertex data.

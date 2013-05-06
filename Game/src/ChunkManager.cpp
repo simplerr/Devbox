@@ -10,8 +10,8 @@
 #include <xnamath.h>
 #include "VoxelEffect.h"
 
-GLib::VoxelVertex ChunkManager::TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
-UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE*Chunk::CHUNK_SIZE];
+GLib::VoxelVertex ChunkManager::TempChunkVertices[24*Chunk::CHUNK_SIZE*Chunk::CHUNK_HEIGHT*Chunk::CHUNK_SIZE];
+UINT ChunkManager::TempChunkIndices[36*Chunk::CHUNK_SIZE*Chunk::CHUNK_HEIGHT*Chunk::CHUNK_SIZE];
 
 int quadtree_counter = 0;
 
@@ -222,7 +222,7 @@ void ChunkManager::UpdateLoadList()
 {
 	// [TEMP][NOTE]
 	// Use the camera position for now.
-	XMFLOAT3 cameraPosition = testCameraPos;//GLib::GlobalApp::GetCamera()->GetPosition();
+	XMFLOAT3 cameraPosition = GLib::GlobalApp::GetCamera()->GetPosition();//testCameraPos
 	ChunkCoord playerIndex = PositionToChunkCoord(cameraPosition);
 
 	for(int x = playerIndex.x - CHUNK_LOAD_RADIUS; x < playerIndex.x + CHUNK_LOAD_RADIUS; x++)
@@ -260,7 +260,7 @@ XMFLOAT3 ChunkManager::ChunkAlignPosition(const XMFLOAT3& position)
 	float chunkSize = Chunk::CHUNK_SIZE * Chunk::VOXEL_SIZE;
 	ChunkCoord tempIndex  = PositionToChunkCoord(position);
 
-	return XMFLOAT3(tempIndex.x * chunkSize, chunkSize/2, tempIndex.z * chunkSize);
+	return XMFLOAT3(tempIndex.x * chunkSize, Chunk::CHUNK_HEIGHT * Chunk::VOXEL_SIZE / 2, tempIndex.z * chunkSize);
 }
 
 bool ChunkManager::InBounds(const ChunkId& chunkId)
@@ -276,7 +276,7 @@ void ChunkManager::TraverseQuadtree(const XMFLOAT3& center, int radiusInChunks, 
 
 	XNA::AxisAlignedBox aabb;
 	aabb.Center = center;
-	aabb.Extents = XMFLOAT3(chunkSize * radiusInChunks, chunkSize/2, chunkSize * radiusInChunks);
+	aabb.Extents = XMFLOAT3(chunkSize * radiusInChunks, Chunk::CHUNK_HEIGHT * Chunk::VOXEL_SIZE / 2, chunkSize * radiusInChunks);
 	
 	// Test AABB collision against the current quad (it's actually a cube but Y is always the same).
 	if(frustum.BoxIntersecting(aabb))

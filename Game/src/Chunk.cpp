@@ -77,6 +77,8 @@ void Chunk::Init()
 // Loops over all blocks and adds them to the vertex buffer.
 void Chunk::CreateMesh()
 {
+	mMaxHeight = 0;
+
 	for(int x = 0; x < CHUNK_SIZE; x++)
 	{
 		for(int y = 0; y < CHUNK_HEIGHT; y++)
@@ -105,7 +107,13 @@ void Chunk::CreateMesh()
 
 					// Only add cube if not surrounded by active blocks.
 					if(!allNeighborsActive)
-						AddCube(mPosition.x + x*VOXEL_SIZE + (float)VOXEL_SIZE/2 , mPosition.y + y*VOXEL_SIZE + (float)VOXEL_SIZE/2, mPosition.z + z*VOXEL_SIZE + (float)VOXEL_SIZE/2);
+					{
+						float posY = mPosition.y + y*VOXEL_SIZE + (float)VOXEL_SIZE/2;
+						if(posY > mMaxHeight)
+							mMaxHeight = posY;
+
+						AddCube(mPosition.x + x*VOXEL_SIZE + (float)VOXEL_SIZE/2 , posY, mPosition.z + z*VOXEL_SIZE + (float)VOXEL_SIZE/2);
+					}
 				}
 				else
 				{
@@ -173,7 +181,6 @@ void Chunk::Rebuild()
 
 	// Restore the block count.
 	mBlockCount = 0;
-	BuildSphere();
 	CreateMesh();
 	BuildMeshPrimitive();
 
@@ -203,10 +210,11 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 	XMFLOAT3 localPosition = position - mPosition;
 
 	float size = CHUNK_SIZE * VOXEL_SIZE;
+	float height = CHUNK_HEIGHT * VOXEL_SIZE;
 
 	// Is the position outside the Chunk?
 	// It shouldn't be since the ChunkManager::PositionToChunkId() should be used first.
-	if(localPosition.x < 0 || localPosition.x > mPosition.x + size || localPosition.y < 0 || localPosition.y > mPosition.y + size || localPosition.z < 0 || localPosition.z > mPosition.z + size)
+	if(localPosition.x < 0 || localPosition.x > mPosition.x + size || localPosition.y < 0 || localPosition.y > mPosition.y + height || localPosition.z < 0 || localPosition.z > mPosition.z + size)
 	{
 		GLIB_ERROR("Position outside chunk!");
 		return index;
@@ -222,32 +230,95 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 
 bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
+	ID3D11Buffer* vertexBuffer = mPrimitive->GetVertices();
+	ID3D11Buffer* indexBuffer = mPrimitive->GetIndices();
+	ID3D11Buffer* tmpVertexBuffer = nullptr;
+	ID3D11Buffer* tmpIndexBuffer = nullptr;
+
+	////////////////////////////////////////////////////////////////////////
+
+	// Fill out the D3D11_BUFFER_DESC struct.
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
+	vbd.ByteWidth = sizeof(VoxelVertex) * mPrimitive->NumVertices();
+	vbd.BindFlags = 0;
+	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	vbd.MiscFlags = 0;
+
+	// Create temporary vertex buffer we can read from.
+	GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&vbd, 0, &tmpVertexBuffer);
+
+	// Copy the resources to the temp vertex buffer.
+	GLib::GlobalApp::GetD3DContext()->CopyResource(tmpVertexBuffer, vertexBuffer);
+
+
+	// Map the vertex buffer.
+	D3D11_MAPPED_SUBRESOURCE vertices_resource;
+	GLib::GlobalApp::GetD3DContext()->Map(tmpVertexBuffer, 0, D3D11_MAP_READ, 0, &vertices_resource);
+
+	////////////////////////////////////////////////////////////////////////
+
+	// Fill out the D3D11_BUFFER_DESC struct.
+	D3D11_BUFFER_DESC ibd;
+	ibd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
+	ibd.ByteWidth = sizeof(UINT) * mPrimitive->NumIndices();
+	ibd.BindFlags = 0;
+	ibd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	ibd.MiscFlags = 0;
+
+	// Create temporary vertex buffer we can read from.
+	GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&ibd, 0, &tmpIndexBuffer);
+
+	// Copy the resources to the temp vertex buffer.
+	GLib::GlobalApp::GetD3DContext()->CopyResource(tmpIndexBuffer, indexBuffer);
+
+
+	// Map the vertex buffer.
+	D3D11_MAPPED_SUBRESOURCE indices_resource;
+	GLib::GlobalApp::GetD3DContext()->Map(tmpIndexBuffer, 0, D3D11_MAP_READ, 0, &indices_resource);
+
+	////////////////////////////////////////////////////////////////////////
+
+	VoxelVertex* vertices = (VoxelVertex*)vertices_resource.pData;
+	UINT* indices = (UINT*)indices_resource.pData;
+
+
 	bool intersect = false;
-	//pDist = 9999999;
-	//for(UINT i = 0; i < 36*mBlockCount/3; ++i)
-	//{
-	//	// Indices for this triangle.
-	//	UINT i0 = mIndices[i*3+0];
-	//	UINT i1 = mIndices[i*3+1];
-	//	UINT i2 = mIndices[i*3+2];
+	pDist = 9999999;
+	for(UINT i = 0; i < 36*mBlockCount/3; ++i)
+	{
+		// Indices for this triangle.
+		UINT i0 = indices[i*3+0];
+		UINT i1 = indices[i*3+1];
+		UINT i2 = indices[i*3+2];
 
-	//	// Vertices for this triangle.
-	//	XMVECTOR v0 = XMLoadFloat3(&mVertices[i0].Position);
-	//	XMVECTOR v1 = XMLoadFloat3(&mVertices[i1].Position);
-	//	XMVECTOR v2 = XMLoadFloat3(&mVertices[i2].Position);
+		// Vertices for this triangle.
+		XMVECTOR v0 = XMLoadFloat3(&XMFLOAT3(vertices[i0].x, vertices[i0].y, vertices[i0].z));
+		XMVECTOR v1 = XMLoadFloat3(&XMFLOAT3(vertices[i1].x, vertices[i1].y, vertices[i1].z));
+		XMVECTOR v2 = XMLoadFloat3(&XMFLOAT3(vertices[i2].x, vertices[i2].y, vertices[i2].z));
 
-	//	float dist = 0.0f;
-	//	direction = XMVector3Normalize(direction);
-	//	if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
-	//	{
-	//		if(dist < pDist)
-	//			pDist = dist;
+		float dist = 0.0f;
+		direction = XMVector3Normalize(direction);
+		if(GLibIntersectRayTriangle(origin, direction, v0, v1, v2, &dist))
+		{
+			if(dist < pDist)
+				pDist = dist;
 
-	//		intersect = true;
-	//	}
-	//}
+			intersect = true;
+		}
+	}
+
+	GLib::GlobalApp::GetD3DContext()->Unmap(tmpVertexBuffer, 0);
+	GLib::GlobalApp::GetD3DContext()->Unmap(tmpIndexBuffer, 0);
 
 	return intersect;
+}
+
+void Chunk::TraverseCollisionOctree(const XMFLOAT3& center, const int& extents)
+{
+	/*XNA::AxisAlignedBox aabb;
+	aabb.Center = center;
+	aabb.Extents = XMFLOAT3(extents * VOXEL_SIZE,);*/
 }
 
 // Broadphase
@@ -262,11 +333,15 @@ bool Chunk::RayIntersectBox(XMVECTOR origin, XMVECTOR direction, float& pDist)
 
 XNA::AxisAlignedBox Chunk::GetAxisAlignedBox()
 {
+	// Note the use of mMaxHeight for the Y values,
+	// It helps a lot for the performance since many chunks
+	// are really low and can be disregarded with just one AABB test.
+
 	XNA::AxisAlignedBox aabb;
 	float size = CHUNK_SIZE * VOXEL_SIZE;
 	float localCenter = size / 2;
-	aabb.Center = mPosition + XMFLOAT3(localCenter, CHUNK_HEIGHT*VOXEL_SIZE/2, localCenter);
-	aabb.Extents = XMFLOAT3(size/2, CHUNK_HEIGHT*VOXEL_SIZE/2, size/2);
+	aabb.Center = mPosition + XMFLOAT3(localCenter, mMaxHeight/2, localCenter);
+	aabb.Extents = XMFLOAT3(size/2, mMaxHeight/2, size/2);
 
 	return aabb;
 }

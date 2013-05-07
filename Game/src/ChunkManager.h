@@ -11,15 +11,17 @@ namespace GLib {
 
 class Chunk;
 
+typedef shared_ptr<Chunk> StrongChunkPtr;
+
 struct ChunkIntersection
 {
-	ChunkIntersection(Chunk* pChunk, float dist)
+	ChunkIntersection(StrongChunkPtr pChunk, float dist)
 	{
 		chunk = pChunk;
 		distance = dist;
 	}
 
-	Chunk* chunk;
+	StrongChunkPtr chunk;
 	float distance;
 };
 
@@ -35,8 +37,6 @@ struct Voxel
 
 
 typedef int ChunkId;
-typedef shared_ptr<Chunk> StrongChunkPtr;
-
 
 const ChunkId INVALID_CHUNK_ID = 0;
 

@@ -101,6 +101,7 @@ public:
 
 	// [TODO] This doesn't work longer since the vertices are only temporary stored.
 	bool RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist);
+	void TraverseCollisionOctree(const XMFLOAT3& center, const int& extents);
 
 	void SetColor(XMFLOAT4 color);
 	void SetBlockActive(BlockIndex blockIndex, bool active);
@@ -130,6 +131,7 @@ private:
 	XMFLOAT3 mPosition;
 	ChunkCoord mChunkIndex;
 	int mBlockCount;
+	float mMaxHeight;
 	bool mRebuildFlag;
 
 	XMFLOAT4 mColor;

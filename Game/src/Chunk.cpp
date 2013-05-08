@@ -230,57 +230,57 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 
 bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 {
-	ID3D11Buffer* vertexBuffer = mPrimitive->GetVertices();
-	ID3D11Buffer* indexBuffer = mPrimitive->GetIndices();
-	ID3D11Buffer* tmpVertexBuffer = nullptr;
-	ID3D11Buffer* tmpIndexBuffer = nullptr;
+	//ID3D11Buffer* vertexBuffer = mPrimitive->GetVertices();
+	//ID3D11Buffer* indexBuffer = mPrimitive->GetIndices();
+	//ID3D11Buffer* tmpVertexBuffer = nullptr;
+	//ID3D11Buffer* tmpIndexBuffer = nullptr;
 
-	////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 
-	// Fill out the D3D11_BUFFER_DESC struct.
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
-	vbd.ByteWidth = sizeof(VoxelVertex) * mPrimitive->NumVertices();
-	vbd.BindFlags = 0;
-	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	vbd.MiscFlags = 0;
+	//// Fill out the D3D11_BUFFER_DESC struct.
+	//D3D11_BUFFER_DESC vbd;
+	//vbd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
+	//vbd.ByteWidth = sizeof(VoxelVertex) * mPrimitive->NumVertices();
+	//vbd.BindFlags = 0;
+	//vbd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	//vbd.MiscFlags = 0;
 
-	// Create temporary vertex buffer we can read from.
-	GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&vbd, 0, &tmpVertexBuffer);
+	//// Create temporary vertex buffer we can read from.
+	//GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&vbd, 0, &tmpVertexBuffer);
 
-	// Copy the resources to the temp vertex buffer.
-	GLib::GlobalApp::GetD3DContext()->CopyResource(tmpVertexBuffer, vertexBuffer);
-
-
-	// Map the vertex buffer.
-	D3D11_MAPPED_SUBRESOURCE vertices_resource;
-	GLib::GlobalApp::GetD3DContext()->Map(tmpVertexBuffer, 0, D3D11_MAP_READ, 0, &vertices_resource);
-
-	////////////////////////////////////////////////////////////////////////
-
-	// Fill out the D3D11_BUFFER_DESC struct.
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
-	ibd.ByteWidth = sizeof(UINT) * mPrimitive->NumIndices();
-	ibd.BindFlags = 0;
-	ibd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	ibd.MiscFlags = 0;
-
-	// Create temporary vertex buffer we can read from.
-	GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&ibd, 0, &tmpIndexBuffer);
-
-	// Copy the resources to the temp vertex buffer.
-	GLib::GlobalApp::GetD3DContext()->CopyResource(tmpIndexBuffer, indexBuffer);
+	//// Copy the resources to the temp vertex buffer.
+	//GLib::GlobalApp::GetD3DContext()->CopyResource(tmpVertexBuffer, vertexBuffer);
 
 
-	// Map the vertex buffer.
-	D3D11_MAPPED_SUBRESOURCE indices_resource;
-	GLib::GlobalApp::GetD3DContext()->Map(tmpIndexBuffer, 0, D3D11_MAP_READ, 0, &indices_resource);
+	//// Map the vertex buffer.
+	//D3D11_MAPPED_SUBRESOURCE vertices_resource;
+	//GLib::GlobalApp::GetD3DContext()->Map(tmpVertexBuffer, 0, D3D11_MAP_READ, 0, &vertices_resource);
 
-	////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 
-	VoxelVertex* vertices = (VoxelVertex*)vertices_resource.pData;
-	UINT* indices = (UINT*)indices_resource.pData;
+	//// Fill out the D3D11_BUFFER_DESC struct.
+	//D3D11_BUFFER_DESC ibd;
+	//ibd.Usage = D3D11_USAGE_STAGING;	// To let the CPU read from the buffer.
+	//ibd.ByteWidth = sizeof(UINT) * mPrimitive->NumIndices();
+	//ibd.BindFlags = 0;
+	//ibd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	//ibd.MiscFlags = 0;
+
+	//// Create temporary vertex buffer we can read from.
+	//GLib::GlobalApp::GetD3DDevice()->CreateBuffer(&ibd, 0, &tmpIndexBuffer);
+
+	//// Copy the resources to the temp vertex buffer.
+	//GLib::GlobalApp::GetD3DContext()->CopyResource(tmpIndexBuffer, indexBuffer);
+
+
+	//// Map the vertex buffer.
+	//D3D11_MAPPED_SUBRESOURCE indices_resource;
+	//GLib::GlobalApp::GetD3DContext()->Map(tmpIndexBuffer, 0, D3D11_MAP_READ, 0, &indices_resource);
+
+	//////////////////////////////////////////////////////////////////////////
+
+	VoxelVertex* vertices = mPrimitive->MapVertexBuffer<VoxelVertex>();
+	UINT* indices = mPrimitive->MapIndexBuffer();
 
 
 	bool intersect = false;
@@ -308,8 +308,8 @@ bool Chunk::RayIntersectMesh(XMVECTOR origin, XMVECTOR direction, float& pDist)
 		}
 	}
 
-	GLib::GlobalApp::GetD3DContext()->Unmap(tmpVertexBuffer, 0);
-	GLib::GlobalApp::GetD3DContext()->Unmap(tmpIndexBuffer, 0);
+	mPrimitive->UnmapVertexBuffer();
+	mPrimitive->UnmapIndexBuffer();
 
 	return intersect;
 }

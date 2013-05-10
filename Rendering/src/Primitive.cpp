@@ -12,7 +12,7 @@ namespace GLib
 //! Constructor.
 Primitive::Primitive()
 {
-
+	mVertexBuffer = mStagingVertexBuffer = mIndexBuffer = mStagingIndexBuffer = nullptr;
 }
 
 //! Cleanup.
@@ -36,6 +36,11 @@ void Primitive::SetIndices(ID3D11Device* pDevice, vector<UINT> indices)
 	/******************************************************************************************//**
 	* The immutable index buffer. 
 	*********************************************************************************************/
+
+	if(mIndexBuffer != nullptr)
+		ReleaseCOM(mIndexBuffer);
+	if(mStagingIndexBuffer != nullptr)
+		ReleaseCOM(mStagingIndexBuffer);
 
 	// Fill out the D3D11_BUFFER_DESC struct.
 	D3D11_BUFFER_DESC ibd;
@@ -65,8 +70,7 @@ void Primitive::SetIndices(ID3D11Device* pDevice, vector<UINT> indices)
 	ibd.MiscFlags = 0;
 
 	// Create temporary vertex buffer we can read from.
-	pDevice->CreateBuffer(&ibd, 0, &mStagingIndexBuffer);
-
+	pDevice->CreateBuffer(&ibd, &initData, &mStagingIndexBuffer);
 
 	mNumIndices = indices.size();
 }
@@ -76,6 +80,11 @@ void Primitive::SetIndices(ID3D11Device* pDevice, UINT* indices, int size)
 	/******************************************************************************************//**
 	* The immutable index buffer. 
 	*********************************************************************************************/
+
+	if(mIndexBuffer != nullptr)
+		ReleaseCOM(mIndexBuffer);
+	if(mStagingIndexBuffer != nullptr)
+		ReleaseCOM(mStagingIndexBuffer);
 
 	// Fill out the D3D11_BUFFER_DESC struct.
 	D3D11_BUFFER_DESC ibd;
@@ -105,16 +114,13 @@ void Primitive::SetIndices(ID3D11Device* pDevice, UINT* indices, int size)
 	ibd.MiscFlags = 0;
 
 	// Create temporary vertex buffer we can read from.
-	pDevice->CreateBuffer(&ibd, 0, &mStagingIndexBuffer);
+	pDevice->CreateBuffer(&ibd, &initData, &mStagingIndexBuffer);
 
 	mNumIndices = size;
 }
 
 UINT* Primitive::MapIndexBuffer()
 {
-	// Copy the resources to the staging vertex buffer.
-	GLib::GlobalApp::GetD3DContext()->CopyResource(mStagingIndexBuffer, mIndexBuffer);
-
 	// Map the index buffer.
 	D3D11_MAPPED_SUBRESOURCE indices_resource;
 	GLib::GlobalApp::GetD3DContext()->Map(mStagingIndexBuffer, 0, D3D11_MAP_READ, 0, &indices_resource);

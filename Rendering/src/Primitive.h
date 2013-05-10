@@ -38,6 +38,11 @@ namespace GLib
 			* The dynamic vertex buffer. 
 			*********************************************************************************************/
 
+			if(mVertexBuffer != nullptr)
+				ReleaseCOM(mVertexBuffer);
+			if(mStagingVertexBuffer != nullptr)
+				ReleaseCOM(mStagingVertexBuffer);
+
 			// Fill out the D3D11_BUFFER_DESC struct.
 			D3D11_BUFFER_DESC vbd;
 			vbd.Usage = D3D11_USAGE_DYNAMIC;
@@ -65,10 +70,11 @@ namespace GLib
 			vbd.MiscFlags = 0;
 
 			// Create the staging vertex buffer we can read from.
-			pDevice->CreateBuffer(&vbd, 0, &mStagingVertexBuffer);
+			pDevice->CreateBuffer(&vbd, &initData, &mStagingVertexBuffer);
 
 			mNumVertices = size;
 		}
+
 
 		void SetIndices(ID3D11Device* pDevice, vector<UINT> indices);
 		void SetIndices(ID3D11Device* pDevice, UINT* indices, int size);
@@ -107,6 +113,8 @@ namespace GLib
 	template <class VertexType>
 	Primitive::Primitive(ID3D11Device* device, vector<VertexType> vertices, vector<UINT> indices)
 	{
+		mVertexBuffer = mStagingVertexBuffer = mIndexBuffer = mStagingIndexBuffer = nullptr;
+
 		SetVertices(device, vertices, vertices.size());
 		SetIndices(device, indices);
 	}
@@ -127,6 +135,11 @@ namespace GLib
 		/******************************************************************************************//**
 		* The dynamic vertex buffer. 
 		*********************************************************************************************/
+
+		if(mVertexBuffer != nullptr)
+			ReleaseCOM(mVertexBuffer);
+		if(mStagingVertexBuffer != nullptr)
+			ReleaseCOM(mStagingVertexBuffer);
 
 		// Fill out the D3D11_BUFFER_DESC struct.
 		D3D11_BUFFER_DESC vbd;
@@ -155,20 +168,14 @@ namespace GLib
 		vbd.MiscFlags = 0;
 
 		// Create the staging vertex buffer we can read from.
-		pDevice->CreateBuffer(&vbd, 0, &mStagingVertexBuffer);
+		pDevice->CreateBuffer(&vbd, &initData, &mStagingVertexBuffer);
 
 		mNumVertices = size;
-
-		// Compute the AABB.
-		//XNA::ComputeBoundingAxisAlignedBoxFromPoints(&mBoundingBox, size, &vertices[0].Pos, sizeof(VertexType));
 	}
 
 	template <class VertexType>
 	VertexType* Primitive::MapVertexBuffer()
 	{
-		// Copy the resources to the staging vertex buffer.
-		GLib::GlobalApp::GetD3DContext()->CopyResource(mStagingVertexBuffer, mVertexBuffer);
-
 		// Map the vertex buffer.
 		D3D11_MAPPED_SUBRESOURCE vertices_resource;
 		GLib::GlobalApp::GetD3DContext()->Map(mStagingVertexBuffer, 0, D3D11_MAP_READ, 0, &vertices_resource);

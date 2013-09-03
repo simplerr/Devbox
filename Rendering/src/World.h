@@ -49,7 +49,10 @@ namespace GLib {
 		Object3D*	GetSelectedObject(Ray ray, ObjectType type);
 		Object3D*	GetObjectById(int id);
 		Object3D*	GetObjectByName(string name);
+		XMFLOAT3	GetWorldCenter();
 		bool		IsIntersecting(Object3D* pObjectA, Object3D* pObjectB);
+
+		void SetWorldCenter(XMFLOAT3 worldCenter);
 
 		// Callback hookups.
 		template <class T>
@@ -83,6 +86,7 @@ namespace GLib {
 		WorldLoader*	mWorldLoader;
 		Sky*			mSkyBox;
 		Terrain*		mTerrain;
+		XMFLOAT3		mWorldCenter; // Default (0, 0, 0).
 		int				mIdCounter;
 		int				mLightIdCounter;
 	};

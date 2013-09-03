@@ -25,6 +25,7 @@ namespace GLib
 		mIdCounter = 0;
 		mLightIdCounter = 0;
 		mTerrain = nullptr;
+		SetWorldCenter(XMFLOAT3(0, 0, 0));
 	}
 
 	//! Init.
@@ -116,7 +117,9 @@ namespace GLib
 
 		// Draw all the objects.
 		for(int i = 0; i < mObjectList.size(); i++)
+		{
 			mObjectList[i]->Draw(pGraphics);
+		}
 	}
 
 	//! Returns the selected object, if any.
@@ -221,6 +224,16 @@ namespace GLib
 				i++;
 			}
 		}
+	}
+
+	void World::SetWorldCenter(XMFLOAT3 worldCenter)
+	{
+		mWorldCenter = worldCenter;
+	}
+
+	XMFLOAT3 World::GetWorldCenter()
+	{
+		return mWorldCenter;
 	}
 
 	int World::GetNumObjects(ObjectType type)

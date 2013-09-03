@@ -72,6 +72,7 @@ struct ChunkIndexHash
 bool operator<(const ChunkCoord a, const ChunkCoord b);
 bool operator==(const ChunkCoord& lhs, const ChunkCoord& rhs);
 ChunkCoord& operator-(const ChunkCoord& lhs, const ChunkCoord& rhs);
+ChunkCoord& operator+(const ChunkCoord& lhs, const ChunkCoord& rhs);
 
 /******************************************************************************************//**
 * The position of a chunk is in the "left bottom" corner, not in the center.
@@ -112,6 +113,7 @@ public:
 	XNA::AxisAlignedBox GetAxisAlignedBox();
 	bool GetRebuildFlag();
 	int GetNumBlocks();
+	bool IsBlock(const BlockIndex& blockIndex);
 
 	// Returns the index to the block that position is inside.
 	BlockIndex PositionToBlockId(XMFLOAT3 position);
@@ -120,7 +122,7 @@ public:
 	void BuildLandscape();
 
 	static const int CHUNK_HEIGHT = 128;
-	static const int CHUNK_SIZE = 32;
+	static const int CHUNK_SIZE = 16;
 	static const int VOXEL_SIZE = 2;
 
 private:

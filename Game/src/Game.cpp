@@ -110,7 +110,7 @@ void Game::Draw(GLib::Graphics* pGraphics)
 	pGraphics->ClearScene();
 
 	mWorld->Draw(pGraphics);
-	//mActorManager->Draw(pGraphics);
+	mActorManager->Draw(pGraphics);
 	mChunkManager->Draw(pGraphics);
 
 	//pGraphics->DrawBillboards();
@@ -158,6 +158,11 @@ void Game::ReloadActors()
 
 	ScriptExports::Register();
 
+	// Register the ChunkManager script functions.
+	LuaPlus::LuaObject globals = LuaManager::Get()->GetGlobalVars();
+	globals.RegisterDirect("get_block_height", *mChunkManager, &ChunkManager::LuaGetHeight);
+
+
 	// [TEMP] Move this to proper location
 	// Call "scene" on_created()
 	LuaPlus::LuaObject object = LuaManager::Get()->GetGlobalVars()["on_created"];
@@ -182,21 +187,23 @@ void Game::AddActor(const char* name)
 
 void Game::InitWorld()
 {
-	// Add a camera.
-	GLib::CameraFPS* camera = new GLib::CameraFPS();
-	camera->SetPosition(XMFLOAT3(10000, 200, 10000));
-	camera->SetMovementSpeed(2.0f);
-	//camera->SetRotateButton(VK_MBUTTON);
-	GetGraphics()->SetCamera(camera);
-
 	// Set the fog color.
 	GetGraphics()->SetFogColor(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f));
 
+	// Init the world that contains all the models.
 	mWorld = new World();
 	mWorld->Init(GetGraphics(), false);
+	mWorld->SetWorldCenter(XMFLOAT3(10000, 0, 10000));	// [NOTE] (10000, 10000) is the center of the world!!
 
+	// Add a camera.
+	GLib::CameraFPS* camera = new GLib::CameraFPS();
+	camera->SetMovementSpeed(0.02f);
+	camera->SetPosition(mWorld->GetWorldCenter() + XMFLOAT3(0, 200, 0));
+	GetGraphics()->SetCamera(camera);
+
+	// Create the main light.
 	GLib::LightObject* light = new GLib::LightObject();
-	light->SetPosition(XMFLOAT3(20, 50, 20));
+	light->SetPosition(mWorld->GetWorldCenter() + XMFLOAT3(20, 50, 20));
 	light->SetRotation(XMFLOAT3(1, -0.5, 0));
 	light->SetLightType(DIRECTIONAL_LIGHT);
 	light->SetMaterials(GLib::Material(GLib::Colors::White));
@@ -204,7 +211,6 @@ void Game::InitWorld()
 	mWorld->AddObject(light);
 
 	mChunkManager = new ChunkManager;
-
 
 	// Connect the graphics light list.
 	GLib::GlobalApp::GetGraphics()->SetLightList(mWorld->GetLights());

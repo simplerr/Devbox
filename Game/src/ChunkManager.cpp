@@ -19,8 +19,8 @@ GLib::Frustum testFrustum;
 XMFLOAT3 testCameraPos;
 
 int ChunkManager::MAX_CHUNKS_LOADED_PER_FRAME = 1;
-int ChunkManager::CHUNK_LOAD_RADIUS = 10;
-int ChunkManager::WORLD_SIZE_IN_CHUNKS = 512;
+int ChunkManager::CHUNK_LOAD_RADIUS = 5;
+int ChunkManager::WORLD_SIZE_IN_CHUNKS = 32;
 
 ChunkCoord ChunkManager::PlayerChunkCoord = ChunkCoord();
 
@@ -57,9 +57,12 @@ ChunkManager::ChunkManager()
 	testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
 
 	mLastChunkId = 0;
-	mTestBox = XMFLOAT3(0, 0, 0);
+	mTestBox = XMFLOAT3(10000, 100, 10000);
 
 	mChunkMap.resize(WORLD_SIZE_IN_CHUNKS*WORLD_SIZE_IN_CHUNKS);
+
+	// Sets the world center where the camera is.
+	// [NOTE][TODO] The world center should be hardcoded in later stages.
 	mWorldCenterIndex = PositionToChunkCoord(testCameraPos);
 
 	mDrawDebug = false;
@@ -93,23 +96,29 @@ int ChunkManager::ChunkCoordToIndex(const ChunkCoord& index)
 
 void ChunkManager::Update(float dt)
 {
+	// Update the list with the chunks to load.
+	// Adds chunks in a radius around the camera.
 	UpdateLoadList();
+
+	// Load the chunks in the load list.
 	LoadChunks();
 
+	// Get the cameras XY positin on the chunk grid.
 	PlayerChunkCoord = PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition());
 
-	if(totalChunksLoaded == CHUNK_LOAD_RADIUS*CHUNK_LOAD_RADIUS*4) {
+	if(totalChunksLoaded == CHUNK_LOAD_RADIUS*CHUNK_LOAD_RADIUS*4) 
 		float end = stopwatch() - startTime;
-		int a = 1;
-	}
 
 	auto input = GLib::GlobalApp::GetInput();
 
+	// TESTING - Rebuild the cameras chunk.
 	if(input->KeyPressed('F'))
 	{
+		mChunkMap[ChunkCoordToIndex(PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition()))]->BuildSphere();
 		mChunkMap[ChunkCoordToIndex(PositionToChunkCoord(GLib::GlobalApp::GetCamera()->GetPosition()))]->Rebuild();
 	}
 
+	// TESTING - Store the current camera frustum.
 	if(input->KeyPressed('C'))
 		testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
 
@@ -168,6 +177,16 @@ void ChunkManager::Update(float dt)
 	// Toggle debug draw information.
 	if(input->KeyPressed(VK_F1))
 		mDrawDebug = !mDrawDebug;
+
+	float speed = 0.1f;
+	if(input->KeyDown(VK_UP))
+		mTestBox.x += speed;
+	if(input->KeyDown(VK_DOWN))
+		mTestBox.x -= speed;
+	if(input->KeyDown(VK_LEFT))
+		mTestBox.z += speed;
+	if(input->KeyDown(VK_RIGHT))
+		mTestBox.z -= speed;
 }
 
 void ChunkManager::Draw(GLib::Graphics* pGraphics)
@@ -190,6 +209,7 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	GLib::Effects::VoxelFX->SetColor(GLib::Colors::LightSteelBlue);
 	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());
 
+	// Draw all visible chunks.
 	for(int i = 0; i < mRenderList.size(); i++)
 	{
 		mRenderList[i]->Render(pGraphics);
@@ -202,9 +222,24 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	if(mDrawDebug)
 		DrawDebug(pGraphics);
 
-	pGraphics->DrawBoundingBox(mTestBox, 3, 3, 3);
+	if(GLib::GlobalApp::GetInput()->KeyDown(VK_RBUTTON))
+	{
+		int height = GetHeight(mTestBox);
+
+		XMFLOAT3 pos = mTestBox;
+		pos.y = (height + 1) * Chunk::VOXEL_SIZE;
+		pGraphics->DrawBoundingBox(pos, 3, 3, 3);
+
+		// Block height.
+		char buffer[128];
+		sprintf(buffer, "Height: %i", height);
+		pGraphics->DrawText(buffer, 40, 600, 30);
+	}
 }
 
+/**
+	@note Only loads MAX_CHUNKS_LOADED_PER_FRAME chunks per frame.
+*/
 void ChunkManager::LoadChunks()
 {
 	int chunksLoaded = 0;
@@ -217,8 +252,6 @@ void ChunkManager::LoadChunks()
 			chunk->SetChunkIndex(mLoadList[i]);
 			chunk->Init();
 			mChunkMap[ChunkCoordToIndex(mLoadList[i])] =  chunk;
-
-			int index = ChunkCoordToIndex(mLoadList[i]);
 
 			totalChunksLoaded++;
 			chunksLoaded++;
@@ -370,6 +403,9 @@ void ChunkManager::OldFrustumCulling()
 	{
 		StrongChunkPtr chunk = (*iter);
 
+		if(chunk == nullptr)
+			continue;
+
 		// Inside frustum, add to the render list.
 		if(GLib::GLibIntersectAxisAlignedBoxFrustum(&chunk->GetAxisAlignedBox(), &frustum))
 			mRenderList.push_back(chunk);
@@ -427,8 +463,47 @@ void ChunkManager::AddVoxel(float x, float y, float z)
 
 }
 
+int ChunkManager::GetHeight(XMFLOAT3 position)
+{
+	int height = 0;
+
+	// Find the Chunk that (x,z) is in.
+	ChunkCoord chunkCoord = PositionToChunkCoord(position.x, position.z);
+	ChunkId chunkId = ChunkCoordToIndex(chunkCoord);
+
+	// Find the block id for (x, y, z).
+	BlockIndex blockIndex = mChunkMap[chunkId]->PositionToBlockId(XMFLOAT3(position.x, position.y, position.z));
+
+	if(!mChunkMap[chunkId]->IsBlock(blockIndex))
+	{
+		// Iterate from the current block position downwards to find a block.
+		// The first block found is the ground.
+		for(int y = blockIndex.y-1; y > 0; y--)
+		{
+			blockIndex.y = y;
+
+			if(mChunkMap[chunkId]->IsBlock(blockIndex))
+			{
+				height = blockIndex.y;
+				break;
+			}
+		}
+	}
+	else
+	{
+		height = blockIndex.y;
+	}
+
+	return height;
+}
+
 ChunkId ChunkManager::GetNextChunkId()
 {
 	++mLastChunkId;
 	return mLastChunkId;
+}
+
+int ChunkManager::LuaGetHeight(float x, float y, float z)
+{
+	return GetHeight(XMFLOAT3(x, y, z));
 }

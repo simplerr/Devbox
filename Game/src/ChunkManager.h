@@ -40,6 +40,10 @@ typedef int ChunkId;
 
 const ChunkId INVALID_CHUNK_ID = 0;
 
+/*
+	int GetHeight(float x, float z);
+*/
+
 class ChunkManager
 {
 public:
@@ -65,7 +69,12 @@ public:
 	ChunkCoord PositionToChunkCoord(XMFLOAT3 position);
 	ChunkCoord PositionToChunkCoord(float x, float z);
 
+	int GetHeight(XMFLOAT3 position);
+
 	void AddVoxel(float x, float y, float z);
+
+	// Lua exports.
+	int LuaGetHeight(float x, float y, float z);
 
 	static int MAX_CHUNKS_LOADED_PER_FRAME;
 	static int CHUNK_LOAD_RADIUS; // Load chunks within this radius from the camera.

@@ -23,7 +23,6 @@ public:
 	static void SetCameraPosition(float x, float y, float z);
 	static void SetCameraDirection(float x, float y, float z);
 	static void SetCameraTarget(float x, float y, float z);
-	
 
 	static LuaPlus::LuaObject GetCameraPosition();
 	static LuaPlus::LuaObject GetCameraDirection();

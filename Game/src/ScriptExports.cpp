@@ -23,8 +23,6 @@ void ScriptExports::Register()
 	globals.RegisterDirect("set_camera_pos", &ScriptExports::SetCameraPosition);
 	globals.RegisterDirect("set_camera_dir", &ScriptExports::SetCameraDirection);
 	globals.RegisterDirect("set_camera_target", &ScriptExports::SetCameraTarget);
-
-
 }
 
 bool ScriptExports::KeyPressed(const char* key)
@@ -116,7 +114,6 @@ void ScriptExports::SetCameraTarget(float x, float y, float z)
 {
 	GLib::GlobalApp::GetGraphics()->GetCamera()->SetTarget(XMFLOAT3(x, y, z));
 }
-
 
 int ScriptExports::MapToKey(std::string str)
 {

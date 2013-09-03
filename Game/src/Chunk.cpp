@@ -36,6 +36,15 @@ ChunkCoord& operator-(const ChunkCoord& lhs, const ChunkCoord& rhs)
 	return ret;
 }
 
+ChunkCoord& operator+(const ChunkCoord& lhs, const ChunkCoord& rhs)
+{
+	ChunkCoord ret;
+	ret.x = lhs.x + rhs.x;
+	ret.z = lhs.z + rhs.z;
+
+	return ret;
+}
+
 Chunk::Chunk(float x, float y, float z) 
 {
 	for(int x = 0; x < CHUNK_SIZE; x++)
@@ -189,23 +198,13 @@ void Chunk::Rebuild()
 
 void Chunk::Render(GLib::Graphics* pGraphics)
 {
-	
-
 	//GLib::Effects::VoxelFX->SetColor(mColor);
-	
-
 	mPrimitive->Draw<VoxelVertex>(GLib::GlobalApp::GetD3DContext());
 }
 
 BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 {
 	BlockIndex index = {-1, -1, -1};
-
-	// HACK TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// Add a direction scalar to the position
-	// The if statements below only work at the edges!!!
-	//position.y -= 0.1f;
-	//position.x -= 0.1f;
 
 	XMFLOAT3 localPosition = position - mPosition;
 
@@ -214,7 +213,8 @@ BlockIndex Chunk::PositionToBlockId(XMFLOAT3 position)
 
 	// Is the position outside the Chunk?
 	// It shouldn't be since the ChunkManager::PositionToChunkId() should be used first.
-	if(localPosition.x < 0 || localPosition.x > mPosition.x + size || localPosition.y < 0 || localPosition.y > mPosition.y + height || localPosition.z < 0 || localPosition.z > mPosition.z + size)
+	// localPosition.y < 0 || localPosition.y > mPosition.y + height
+	if(localPosition.x < 0 || localPosition.x > mPosition.x + size || localPosition.z < 0 || localPosition.z > mPosition.z + size)
 	{
 		GLIB_ERROR("Position outside chunk!");
 		return index;
@@ -389,6 +389,15 @@ void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)
 	{
 		GLIB_ERROR("Invalid block index");
 	}
+}
+
+bool Chunk::IsBlock(const BlockIndex& blockIndex)
+{
+	// A block here?
+	if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z])
+		return true;
+	else
+		return false;
 }
 
 // Adds a cube to the vertex buffer.

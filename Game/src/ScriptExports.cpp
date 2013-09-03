@@ -20,6 +20,9 @@ void ScriptExports::Register()
 	globals.RegisterDirect("get_camera_pos", &ScriptExports::GetCameraPosition);
 	globals.RegisterDirect("get_camera_dir", &ScriptExports::GetCameraDirection);
 	globals.RegisterDirect("get_camera_target", &ScriptExports::GetCameraTarget);
+	globals.RegisterDirect("get_camera_right", &ScriptExports::GetCameraRight);
+
+
 	globals.RegisterDirect("set_camera_pos", &ScriptExports::SetCameraPosition);
 	globals.RegisterDirect("set_camera_dir", &ScriptExports::SetCameraDirection);
 	globals.RegisterDirect("set_camera_target", &ScriptExports::SetCameraTarget);
@@ -98,6 +101,15 @@ LuaPlus::LuaObject ScriptExports::GetCameraTarget()
 	LuaManager::Get()->ConvertVec3ToTable(target, targetTable);
 
 	return targetTable;
+}
+
+LuaPlus::LuaObject ScriptExports::GetCameraRight()
+{
+	XMFLOAT3 right = GLib::GlobalApp::GetGraphics()->GetCamera()->GetRight();
+	LuaPlus::LuaObject rightTable;
+	LuaManager::Get()->ConvertVec3ToTable(right, rightTable);
+
+	return rightTable;
 }
 
 void ScriptExports::SetCameraPosition(float x, float y, float z)

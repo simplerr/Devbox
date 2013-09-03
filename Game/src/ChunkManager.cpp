@@ -471,6 +471,9 @@ int ChunkManager::GetHeight(XMFLOAT3 position)
 	ChunkCoord chunkCoord = PositionToChunkCoord(position.x, position.z);
 	ChunkId chunkId = ChunkCoordToIndex(chunkCoord);
 
+	if(mChunkMap[chunkId] == nullptr)
+		return 0;
+
 	// Find the block id for (x, y, z).
 	BlockIndex blockIndex = mChunkMap[chunkId]->PositionToBlockId(XMFLOAT3(position.x, position.y, position.z));
 

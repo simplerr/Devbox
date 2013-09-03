@@ -9,7 +9,7 @@
 #include "Primitive.h"
 #include "Camera.h"
 #include "Effects.h"
-#include "CameraFPS.h"
+#include "CameraDefault.h"
 #include "D3DCore.h"
 #include "Terrain.h"
 #include "StaticObject.h"
@@ -61,7 +61,7 @@ Game::Game(HINSTANCE hInstance, string caption, int width, int height)
 	: Runnable(hInstance, caption, width, height)
 {
 	// Cap the fps to 100.
-	//SetFpsCap(99.0f);
+	SetFpsCap(300.0f);
 	mDrawDebug = false;
 }
 	
@@ -91,14 +91,14 @@ void Game::Init()
 
 void Game::Update(GLib::Input* pInput, float dt)
 {
-	GetGraphics()->Update(pInput, dt);
-
 	if(pInput->KeyPressed('R'))
 		ReloadActors();
 
 	mWorld->Update(dt);
 	mActorManager->Update(dt);
 	mChunkManager->Update(dt);
+
+	GetGraphics()->Update(pInput, dt);
 
 	if(pInput->KeyPressed(VK_F1))
 		mDrawDebug = !mDrawDebug;
@@ -196,7 +196,7 @@ void Game::InitWorld()
 	mWorld->SetWorldCenter(XMFLOAT3(10000, 0, 10000));	// [NOTE] (10000, 10000) is the center of the world!!
 
 	// Add a camera.
-	GLib::CameraFPS* camera = new GLib::CameraFPS();
+	GLib::CameraDefault* camera = new GLib::CameraDefault();
 	camera->SetMovementSpeed(0.02f);
 	camera->SetPosition(mWorld->GetWorldCenter() + XMFLOAT3(0, 200, 0));
 	GetGraphics()->SetCamera(camera);

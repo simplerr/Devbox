@@ -27,6 +27,7 @@ public:
 	static LuaPlus::LuaObject GetCameraPosition();
 	static LuaPlus::LuaObject GetCameraDirection();
 	static LuaPlus::LuaObject GetCameraTarget();
+	static LuaPlus::LuaObject GetCameraRight();
 	
 private:
 	static int MapToKey(std::string str);

@@ -87,7 +87,7 @@ player = {
 		playerPos = self:GetPosition();
 		local velocityX = 0; 
 		local velocityZ = 0;
-		local speed = 0.05;
+		local speed = 0.1;
 		if key_down("W") then
 			velocityX = cameraDir.x * speed;
 			velocityZ = cameraDir.z * speed;
@@ -105,11 +105,6 @@ player = {
 			velocityZ = cameraRight.z * speed;
 		end
 			
-		
-
-		-- X
-		local new_block_height = get_block_height(playerPos.x + velocityX, playerPos.y, playerPos.z);
-
 		if key_pressed("X") then
 			print("playerPos.y ");
 			print(playerPos.y);
@@ -117,17 +112,27 @@ player = {
 			print(new_block_height);
 		end
 
+		-- X
+		local radius = 1;
+		local radius_direction = radius;
+		if velocityX < 0 then
+			radius_direction = -radius;
+		end
 
+		local new_block_height = get_block_height(playerPos.x + velocityX + radius_direction, playerPos.y, playerPos.z);
 		if new_block_height*2 + 4 > playerPos.y then
 			velocityX = 0.0;
-			--print("BLOCKED!");
 		end
 
 		-- Z
-		new_block_height = get_block_height(playerPos.x, playerPos.y, playerPos.z + velocityZ);
+		radius_direction = radius; -- Reset to 1
+		if velocityZ < 0 then
+			radius_direction = -radius;
+		end
+
+		new_block_height = get_block_height(playerPos.x, playerPos.y, playerPos.z + velocityZ + radius_direction);
 		if new_block_height*2 + 4 > playerPos.y then
 			velocityZ = 0.0;
-			--print("BLOCKED!");
 		end
 
 		self:SetPosition(playerPos.x + velocityX, newY, playerPos.z + velocityZ);

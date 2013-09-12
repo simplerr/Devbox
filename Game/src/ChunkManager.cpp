@@ -205,8 +205,15 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	XMMATRIX proj = XMLoadFloat4x4(&GLib::GlobalApp::GetGraphics()->GetCamera()->GetProjectionMatrix());
 
 	GLib::Effects::VoxelFX->SetWorld(XMMatrixIdentity());
-	GLib::Effects::VoxelFX->SetWorldViewProj(XMMatrixIdentity() * view * proj);
-	GLib::Effects::VoxelFX->SetColor(GLib::Colors::LightSteelBlue);
+	GLib::Effects::VoxelFX->SetWorldViewProj(XMMatrixIdentity()*view*proj);
+	GLib::Effects::VoxelFX->SetWorldInvTranspose(GLib::InverseTranspose(XMMatrixIdentity()));
+	GLib::Effects::VoxelFX->SetEyePosition(pGraphics->GetCamera()->GetPosition());
+	GLib::Effects::VoxelFX->SetLights(pGraphics->GetLightList());
+	GLib::Effects::VoxelFX->SetFogColor(pGraphics->GetFogColor());
+	GLib::Effects::VoxelFX->SetFogStart(0.0f);
+	GLib::Effects::VoxelFX->SetFogRange(200.0f);
+	GLib::Effects::VoxelFX->SetMaterial(GLib::Material(GLib::Colors::Green));
+
 	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());
 
 	// Draw all visible chunks.

@@ -188,7 +188,7 @@ void Game::AddActor(const char* name)
 void Game::InitWorld()
 {
 	// Set the fog color.
-	GetGraphics()->SetFogColor(XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f));
+	GetGraphics()->SetFogColor(XMFLOAT4(1.0f, 0.0f, 0.4f, 1.0f));
 
 	// Init the world that contains all the models.
 	mWorld = new World();
@@ -206,8 +206,8 @@ void Game::InitWorld()
 	light->SetPosition(mWorld->GetWorldCenter() + XMFLOAT3(20, 50, 20));
 	light->SetRotation(XMFLOAT3(1, -0.5, 0));
 	light->SetLightType(DIRECTIONAL_LIGHT);
-	light->SetMaterials(GLib::Material(GLib::Colors::White));
-
+	light->SetMaterials(GLib::Material(GLib::Colors::Yellow));
+	light->SetIntensity(0.5f, 0.5f, 0.5f);
 	mWorld->AddObject(light);
 
 	mChunkManager = new ChunkManager;

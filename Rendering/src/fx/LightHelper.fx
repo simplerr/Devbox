@@ -175,7 +175,7 @@ void ApplyLighting(int numLights, Light lights[10], Material material, float3 po
 		// Sum the light contribution from each light source.
 		float4 A, D, S;
 
-		if(lights[i].type == 0)		// Directional light
+		if(lights[i].type == 0)			// Directional light
 			ComputeDirectionalLight(material, lights[i], normalW, toEyeW, A, D, S);
 		else if(lights[i].type == 1)	// Point light.
 			ComputePointLight(material, lights[i], posW, normalW, toEyeW, A, D, S);

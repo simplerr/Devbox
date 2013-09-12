@@ -1,14 +1,25 @@
 //
 // FX Version: fx_5_0
 //
-// 1 local buffer(s)
+// 2 local buffer(s)
 //
+cbuffer cbPerFrame
+{
+    Light   gLights[10];                // Offset:    0, size: 1120
+    float   gNumLights;                 // Offset: 1120, size:    4
+    float3  gEyePosW;                   // Offset: 1124, size:   12
+    float   gFogStart;                  // Offset: 1136, size:    4
+    float   gFogRange;                  // Offset: 1140, size:    4
+    float4  gFogColor;                  // Offset: 1152, size:   16
+}
+
 cbuffer cbPerObject
 {
     float4x4 gWorld;                    // Offset:    0, size:   64
     float4x4 gWorldViewProj;            // Offset:   64, size:   64
     float4x4 gWorldInvTranspose;        // Offset:  128, size:   64
     float4  gColor;                     // Offset:  192, size:   16
+    Material gMaterial;                 // Offset:  208, size:   48
 }
 
 //
@@ -41,10 +52,19 @@ fxgroup
                 // cbuffer cbPerObject
                 // {
                 //
-                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64
                 //   float4x4 gWorldViewProj;           // Offset:   64 Size:    64
-                //   float4x4 gWorldInvTranspose;       // Offset:  128 Size:    64 [unused]
-                //   float4 gColor;                     // Offset:  192 Size:    16
+                //   float4x4 gWorldInvTranspose;       // Offset:  128 Size:    64
+                //   float4 gColor;                     // Offset:  192 Size:    16 [unused]
+                //   
+                //   struct Material
+                //   {
+                //       
+                //       float4 ambient;                // Offset:  208
+                //       float4 diffuse;                // Offset:  224
+                //       float4 specular;               // Offset:  240
+                //
+                //   } gMaterial;                       // Offset:  208 Size:    48 [unused]
                 //
                 // }
                 //
@@ -70,39 +90,35 @@ fxgroup
                 // Name                 Index   Mask Register SysValue Format   Used
                 // -------------------- ----- ------ -------- -------- ------ ------
                 // SV_POSITION              0   xyzw        0      POS  float   xyzw
-                // COLOR                    0   xyzw        1     NONE  float   xyzw
+                // POSITION                 0   xyz         1     NONE  float   xyz 
+                // NORMAL                   0   xyz         2     NONE  float   xyz 
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed
-                dcl_constantbuffer cb0[13], immediateIndexed
+                dcl_constantbuffer cb0[11], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_output_siv o0.xyzw, position
-                dcl_output o1.xyzw
-                dcl_temps 3
+                dcl_output o1.xyz
+                dcl_output o2.xyz
+                dcl_temps 4
                 
-                #line 30 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Voxel.fx"
+                #line 46 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Voxel.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[4].xyzw  // vout<0:NaN:Inf>
-                dp4 r1.y, r0.xyzw, cb0[5].xyzw  // vout<1:NaN:Inf>
-                dp4 r1.z, r0.xyzw, cb0[6].xyzw  // vout<2:NaN:Inf>
-                dp4 r1.w, r0.xyzw, cb0[7].xyzw  // vout<3:NaN:Inf>
-                
-                #line 33
-                dp3 r0.x, l(0.408248, 0.816497, 0.408248, 0.000000), v1.xyzx
-                max r0.x, r0.x, l(0.000000)  // diffuseFactor<0:Inf:[-0f,1.#INFf]>
-                mul r0.yzw, cb0[12].xxyz, l(0.000000, 0.400000, 0.400000, 0.400000)  // ambient<0:[-1.36113e+038f,1.36113e+038f],1:[-1.36113e+038f,1.36113e+038f],2:[-1.36113e+038f,1.36113e+038f]>
-                
-                #line 38
-                mul r2.xyz, cb0[12].xyzx, l(0.700000, 0.700000, 0.700000, 0.000000)  // diffuse<0:[-2.38198e+038f,2.38198e+038f],1:[-2.38198e+038f,2.38198e+038f],2:[-2.38198e+038f,2.38198e+038f]>
-                mul r2.xyz, r0.xxxx, r2.xyzx
-                add r0.xyz, r0.yzwy, r2.xyzx  // vout<4:NaN:Inf,5:NaN:Inf,6:NaN:Inf>
-                
-                #line 43
-                mov o0.xyzw, r1.xyzw  // VS<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
-                mov o1.xyz, r0.xyzx  // VS<4:NaN:Inf,5:NaN:Inf,6:NaN:Inf>
-                mov o1.w, l(1.000000)  // VS<7: 1f>
+                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // vout<4:NaN:Inf>
+                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // vout<5:NaN:Inf>
+                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // vout<6:NaN:Inf>
+                dp3 r2.x, v1.xyzx, cb0[8].xyzx  // vout<7:NaN:Inf>
+                dp3 r2.y, v1.xyzx, cb0[9].xyzx  // vout<8:NaN:Inf>
+                dp3 r2.z, v1.xyzx, cb0[10].xyzx  // vout<9:NaN:Inf>
+                dp4 r3.x, r0.xyzw, cb0[4].xyzw  // vout<0:NaN:Inf>
+                dp4 r3.y, r0.xyzw, cb0[5].xyzw  // vout<1:NaN:Inf>
+                dp4 r3.z, r0.xyzw, cb0[6].xyzw  // vout<2:NaN:Inf>
+                dp4 r3.w, r0.xyzw, cb0[7].xyzw  // vout<3:NaN:Inf>
+                mov o0.xyzw, r3.xyzw  // VS<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf,3:NaN:Inf>
+                mov o1.xyz, r1.xyzx  // VS<4:NaN:Inf,5:NaN:Inf,6:NaN:Inf>
+                mov o2.xyz, r2.xyzx  // VS<7:NaN:Inf,8:NaN:Inf,9:NaN:Inf>
                 ret 
                 // Approximately 16 instruction slots used
                             
@@ -112,13 +128,76 @@ fxgroup
                 // Generated by Microsoft (R) HLSL Shader Compiler 9.29.952.3111
                 //
                 //
+                // Buffer Definitions: 
+                //
+                // cbuffer cbPerFrame
+                // {
+                //
+                //   struct Light
+                //   {
+                //       
+                //       struct Material
+                //       {
+                //           
+                //           float4 ambient;            // Offset:    0
+                //           float4 diffuse;            // Offset:   16
+                //           float4 specular;           // Offset:   32
+                //
+                //       } mat;                         // Offset:    0
+                //       float3 pos;                    // Offset:   48
+                //       float range;                   // Offset:   60
+                //       float3 dir;                    // Offset:   64
+                //       float spot;                    // Offset:   76
+                //       float3 att;                    // Offset:   80
+                //       float type;                    // Offset:   92
+                //       float3 intensity;              // Offset:   96
+                //       float id;                      // Offset:  108
+                //
+                //   } gLights[10];                     // Offset:    0 Size:  1120
+                //   float gNumLights;                  // Offset: 1120 Size:     4
+                //   float3 gEyePosW;                   // Offset: 1124 Size:    12
+                //   float gFogStart;                   // Offset: 1136 Size:     4
+                //   float gFogRange;                   // Offset: 1140 Size:     4
+                //   float4 gFogColor;                  // Offset: 1152 Size:    16
+                //
+                // }
+                //
+                // cbuffer cbPerObject
+                // {
+                //
+                //   float4x4 gWorld;                   // Offset:    0 Size:    64 [unused]
+                //   float4x4 gWorldViewProj;           // Offset:   64 Size:    64 [unused]
+                //   float4x4 gWorldInvTranspose;       // Offset:  128 Size:    64 [unused]
+                //   float4 gColor;                     // Offset:  192 Size:    16 [unused]
+                //   
+                //   struct Material
+                //   {
+                //       
+                //       float4 ambient;                // Offset:  208
+                //       float4 diffuse;                // Offset:  224
+                //       float4 specular;               // Offset:  240
+                //
+                //   } gMaterial;                       // Offset:  208 Size:    48
+                //
+                // }
+                //
+                //
+                // Resource Bindings:
+                //
+                // Name                                 Type  Format         Dim Slot Elements
+                // ------------------------------ ---------- ------- ----------- ---- --------
+                // cbPerFrame                        cbuffer      NA          NA    0        1
+                // cbPerObject                       cbuffer      NA          NA    1        1
+                //
+                //
                 //
                 // Input signature:
                 //
                 // Name                 Index   Mask Register SysValue Format   Used
                 // -------------------- ----- ------ -------- -------- ------ ------
                 // SV_POSITION              0   xyzw        0      POS  float       
-                // COLOR                    0   xyzw        1     NONE  float   xyzw
+                // POSITION                 0   xyz         1     NONE  float   xyz 
+                // NORMAL                   0   xyz         2     NONE  float   xyz 
                 //
                 //
                 // Output signature:
@@ -129,15 +208,322 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed
-                dcl_input_ps linear v1.xyzw
+                dcl_constantbuffer cb0[73], dynamicIndexed
+                dcl_constantbuffer cb1[16], immediateIndexed
+                dcl_input_ps linear v1.xyz
+                dcl_input_ps linear v2.xyz
                 dcl_output o0.xyzw
+                dcl_temps 26
                 
-                #line 48 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Voxel.fx"
-                mov o0.xyzw, v1.xyzw  // PS<0,1,2,3>
+                #line 56 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Voxel.fx"
+                dp3 r0.x, v2.xyzx, v2.xyzx
+                rsq r0.x, r0.x
+                mul r0.xyz, r0.xxxx, v2.xyzx  // pin<7:NaN:Inf,8:NaN:Inf,9:NaN:Inf>
+                mov r1.xyz, -v1.xyzx
+                add r1.xyz, r1.xyzx, cb0[70].yzwy
+                dp3 r0.w, r1.xyzx, r1.xyzx
+                rsq r1.w, r0.w
+                mul r1.xyz, r1.wwww, r1.xyzx  // toEyeW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 66
+                nop 
+                ftoi r1.w, cb0[70].x  // numLights<0>
+                mov r2.xyzw, cb1[15].xyzw  // material<8,9,10,11>
+                mov r3.xyz, cb1[13].xyzx  // material<0,1,2>
+                mov r4.xyz, cb1[14].xyzx  // material<4,5,6>
+                mov r5.xyz, v1.xyzx  // posW<0,1,2>
+                mov r0.xyz, r0.xyzx  // normalW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                mov r1.xyz, r1.xyzx  // toEyeW<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 168 "LightHelper.fx"
+                mov r6.xyz, l(0,0,0,0)  // ambient<0: -0f,1: -0f,2: -0f>
+                
+                #line 173
+                mov r3.w, l(0)  // i<0: 0>
+                mov r7.xyz, r6.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                mov r8.xyz, r6.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                mov r9.xyz, r6.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                mov r4.w, r3.w  // i<0>
+                loop 
+                  ilt r5.w, r4.w, r1.w
+                  breakc_z r5.w
+                
+                #line 178
+                  imul null, r5.w, r4.w, l(7)
+                  eq r6.w, cb0[r5.w + 5].w, l(0.000000)
+                  if_nz r6.w
+                    nop 
+                    mov r10.xyz, r3.xyzx  // mat<0,1,2>
+                    mov r11.xyz, r4.xyzx  // mat<4,5,6>
+                    mov r12.xyzw, r2.xyzw  // mat<8,9,10,11>
+                    mov r13.xyz, cb0[r5.w + 0].xyzx  // light<0,1,2>
+                    mov r14.xyz, cb0[r5.w + 1].xyzx  // light<4,5,6>
+                    mov r15.xyz, cb0[r5.w + 2].xyzx  // light<8,9,10>
+                    mov r16.xyz, cb0[r5.w + 4].xyzx  // light<16,17,18>
+                    mov r17.xyz, cb0[r5.w + 6].xyzx  // light<24,25,26>
+                    mov r18.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    mov r19.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 43
+                    mov r16.xyz, -r16.xyzx  // lightVec<0,1,2>
+                
+                #line 46
+                    mul r10.xyz, r10.xyzx, r13.xyzx
+                    mul r10.xyz, r17.xxxx, r10.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 51
+                    dp3 r6.w, r16.xyzx, r18.xyzx  // diffuseFactor<0:NaN:Inf>
+                
+                #line 55
+                    lt r7.w, l(0.000000), r6.w
+                    mov r13.xyz, -r16.xyzx
+                    dp3 r8.w, r13.xyzx, r18.xyzx
+                    add r8.w, r8.w, r8.w
+                    mov r8.w, -r8.w
+                    mul r16.xyz, r8.wwww, r18.xyzx
+                    add r13.xyz, r13.xyzx, r16.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    dp3 r8.w, r13.xyzx, r19.xyzx
+                    max r8.w, r8.w, l(0.000000)
+                    log r8.w, r8.w
+                    mul r8.w, r8.w, r12.w
+                    exp r8.w, r8.w  // specFactor<0:NaN:Inf>
+                    mul r11.xyz, r11.xyzx, r6.wwww
+                    mul r11.xyz, r14.xyzx, r11.xyzx
+                    mul r11.xyz, r17.yyyy, r11.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    mul r12.xyz, r12.xyzx, r8.wwww
+                    mul r12.xyz, r15.xyzx, r12.xyzx
+                    mul r12.xyz, r17.zzzz, r12.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 55
+                    movc r11.xyz, r7.wwww, r11.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    movc r12.xyz, r7.wwww, r12.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 179
+                    mov r10.xyz, r10.xyzx  // A<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    mov r11.xyz, r11.xyzx  // D<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    mov r12.xyz, r12.xyzx  // S<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                  else 
+                    eq r6.w, cb0[r5.w + 5].w, l(1.000000)
+                    if_nz r6.w
+                      nop 
+                      mov r13.xyz, r3.xyzx  // mat<0,1,2>
+                      mov r14.xyz, r4.xyzx  // mat<4,5,6>
+                      mov r15.xyzw, r2.xyzw  // mat<8,9,10,11>
+                      mov r16.xyz, cb0[r5.w + 0].xyzx  // light<0,1,2>
+                      mov r17.xyz, cb0[r5.w + 1].xyzx  // light<4,5,6>
+                      mov r18.xyz, cb0[r5.w + 2].xyzx  // light<8,9,10>
+                      mov r19.xyz, cb0[r5.w + 3].xyzx  // light<12,13,14>
+                      mov r20.xyz, cb0[r5.w + 5].xyzx  // light<20,21,22>
+                      mov r6.w, cb0[r5.w + 3].w  // light<15>
+                      mov r21.xyz, cb0[r5.w + 6].xyzx  // light<24,25,26>
+                      mov r22.xyz, r5.xyzx  // pos<0,1,2>
+                      mov r23.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                      mov r24.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 74
+                      mov r22.xyz, -r22.xyzx
+                      add r19.xyz, r19.xyzx, r22.xyzx  // lightVec<0:Inf,1:Inf,2:Inf>
+                
+                #line 77
+                      dp3 r7.w, r19.xyzx, r19.xyzx
+                      sqrt r22.y, r7.w  // d<0:NaN:Inf>
+                
+                #line 80
+                      lt r6.w, r6.w, r22.y
+                
+                #line 84
+                      if_z r6.w
+                        div r19.xyz, r19.xyzx, r22.yyyy  // lightVec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 87
+                        mul r13.xyz, r13.xyzx, r16.xyzx
+                        mul r10.xyz, r21.xxxx, r13.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 92
+                        dp3 r6.w, r19.xyzx, r23.xyzx  // diffuseFactor<0:NaN:Inf>
+                
+                #line 96
+                        lt r7.w, l(0.000000), r6.w
+                        mov r13.xyz, -r19.xyzx
+                        dp3 r8.w, r13.xyzx, r23.xyzx
+                        add r8.w, r8.w, r8.w
+                        mov r8.w, -r8.w
+                        mul r16.xyz, r8.wwww, r23.xyzx
+                        add r13.xyz, r13.xyzx, r16.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        dp3 r8.w, r13.xyzx, r24.xyzx
+                        max r8.w, r8.w, l(0.000000)
+                        log r8.w, r8.w
+                        mul r8.w, r8.w, r15.w
+                        exp r8.w, r8.w  // specFactor<0:NaN:Inf>
+                        mul r13.xyz, r14.xyzx, r6.wwww
+                        mul r13.xyz, r17.xyzx, r13.xyzx
+                        mul r13.xyz, r21.yyyy, r13.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mul r14.xyz, r15.xyzx, r8.wwww
+                        mul r14.xyz, r18.xyzx, r14.xyzx
+                        mul r14.xyz, r21.zzzz, r14.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 96
+                        movc r13.xyz, r7.wwww, r13.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        movc r14.xyz, r7.wwww, r14.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 106
+                        mul r22.z, r22.y, r22.y
+                        mov r22.x, l(1.000000)
+                        dp3 r6.w, r20.xyzx, r22.xyzx
+                        div r6.w, l(1.000000), r6.w  // att<0:NaN:Inf>
+                        mul r11.xyz, r6.wwww, r13.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mul r12.xyz, r6.wwww, r14.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 84
+                      else 
+                        mov r10.xyz, l(0,0,0,0)  // ambient<0: 0f,1: 0f,2: 0f>
+                        mov r11.xyz, l(0,0,0,0)  // diffuse<0: 0f,1: 0f,2: 0f>
+                        mov r12.xyz, l(0,0,0,0)  // spec<0: 0f,1: 0f,2: 0f>
+                      endif 
+                
+                #line 181
+                      mov r10.xyz, r10.xyzx  // A<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                      mov r11.xyz, r11.xyzx  // D<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                      mov r12.xyz, r12.xyzx  // S<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                    else 
+                      eq r6.w, cb0[r5.w + 5].w, l(2.000000)
+                      if_nz r6.w
+                        nop 
+                        mov r13.xyz, r3.xyzx  // mat<0,1,2>
+                        mov r14.xyz, r4.xyzx  // mat<4,5,6>
+                        mov r15.xyzw, r2.xyzw  // mat<8,9,10,11>
+                        mov r16.xyz, cb0[r5.w + 0].xyzx  // light<0,1,2>
+                        mov r17.xyz, cb0[r5.w + 1].xyzx  // light<4,5,6>
+                        mov r18.xyz, cb0[r5.w + 2].xyzx  // light<8,9,10>
+                        mov r19.xyz, cb0[r5.w + 3].xyzx  // light<12,13,14>
+                        mov r20.xyz, cb0[r5.w + 4].xyzx  // light<16,17,18>
+                        mov r21.xyz, cb0[r5.w + 5].xyzx  // light<20,21,22>
+                        mov r6.w, cb0[r5.w + 3].w  // light<15>
+                        mov r7.w, cb0[r5.w + 4].w  // light<19>
+                        mov r22.xyz, cb0[r5.w + 6].xyzx  // light<24,25,26>
+                        mov r23.xyz, r5.xyzx  // pos<0,1,2>
+                        mov r24.xyz, r0.xyzx  // normal<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mov r25.xyz, r1.xyzx  // toEye<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 121
+                        mov r23.xyz, -r23.xyzx
+                        add r19.xyz, r19.xyzx, r23.xyzx  // lightVec<0:Inf,1:Inf,2:Inf>
+                
+                #line 124
+                        dp3 r5.w, r19.xyzx, r19.xyzx
+                        sqrt r23.y, r5.w  // d<0:NaN:Inf>
+                
+                #line 127
+                        lt r5.w, r6.w, r23.y
+                
+                #line 131
+                        if_z r5.w
+                          div r19.xyz, r19.xyzx, r23.yyyy  // lightVec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 134
+                          mul r13.xyz, r13.xyzx, r16.xyzx
+                          mul r13.xyz, r22.xxxx, r13.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 139
+                          dp3 r5.w, r19.xyzx, r24.xyzx  // diffuseFactor<0:NaN:Inf>
+                
+                #line 143
+                          lt r6.w, l(0.000000), r5.w
+                          mov r16.xyz, -r19.xyzx
+                          dp3 r8.w, r16.xyzx, r24.xyzx
+                          add r8.w, r8.w, r8.w
+                          mov r8.w, -r8.w
+                          mul r19.xyz, r8.wwww, r24.xyzx
+                          add r19.xyz, r16.xyzx, r19.xyzx  // v<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          dp3 r8.w, r19.xyzx, r25.xyzx
+                          max r8.w, r8.w, l(0.000000)
+                          log r8.w, r8.w
+                          mul r8.w, r8.w, r15.w
+                          exp r8.w, r8.w  // specFactor<0:NaN:Inf>
+                          mul r14.xyz, r14.xyzx, r5.wwww
+                          mul r14.xyz, r17.xyzx, r14.xyzx
+                          mul r14.xyz, r22.yyyy, r14.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          mul r15.xyz, r15.xyzx, r8.wwww
+                          mul r15.xyz, r18.xyzx, r15.xyzx
+                          mul r15.xyz, r22.zzzz, r15.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 143
+                          movc r14.xyz, r6.wwww, r14.xyzx, l(0,0,0,0)  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          movc r15.xyz, r6.wwww, r15.xyzx, l(0,0,0,0)  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 153
+                          dp3 r5.w, r16.xyzx, r20.xyzx
+                          max r5.w, r5.w, l(0.000000)
+                          log r5.w, r5.w
+                          mul r5.w, r5.w, r7.w
+                          exp r5.w, r5.w  // spot<0:NaN:Inf>
+                
+                #line 156
+                          mul r23.z, r23.y, r23.y
+                          mov r23.x, l(1.000000)
+                          dp3 r6.w, r21.xyzx, r23.xyzx
+                          div r6.w, r5.w, r6.w  // att<0:NaN:Inf>
+                          mul r10.xyz, r5.wwww, r13.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          mul r11.xyz, r6.wwww, r14.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                          mul r12.xyz, r6.wwww, r15.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 131
+                        else 
+                          mov r10.xyz, l(0,0,0,0)  // ambient<0: 0f,1: 0f,2: 0f>
+                          mov r11.xyz, l(0,0,0,0)  // diffuse<0: 0f,1: 0f,2: 0f>
+                          mov r12.xyz, l(0,0,0,0)  // spec<0: 0f,1: 0f,2: 0f>
+                        endif 
+                
+                #line 183
+                        mov r10.xyz, r10.xyzx  // A<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mov r11.xyz, r11.xyzx  // D<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                        mov r12.xyz, r12.xyzx  // S<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                      endif 
+                    endif 
+                  endif 
+                
+                #line 185
+                  add r7.xyz, r7.xyzx, r10.xyzx  // ambient<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                  mul r10.xyz, r11.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
+                  add r8.xyz, r8.xyzx, r10.xyzx  // diffuse<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                  mul r10.xyz, r12.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
+                  add r9.xyz, r9.xyzx, r10.xyzx  // spec<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 173
+                  iadd r4.w, r4.w, l(1)  // i<0>
+                endloop 
+                
+                #line 190
+                add r0.xyz, r7.xyzx, r8.xyzx
+                mul r0.xyz, r0.xyzx, l(1.000000, 1.000000, 1.000000, 0.000000)
+                add r0.xyz, r9.xyzx, r0.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 66 "F:\Users\Axel\Documents\Projects\Devbox\Rendering\src\fx\Voxel.fx"
+                mov r0.xyz, r0.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 69
+                sqrt r0.w, r0.w  // distToEye<0:NaN:Inf>
+                mov r1.x, -cb0[71].x
+                add r0.w, r0.w, r1.x
+                div r0.w, r0.w, cb0[71].y
+                max r0.w, r0.w, l(0.000000)
+                min r0.w, r0.w, l(1.000000)  // fogLerp<0:[0f,1f]>
+                
+                #line 73
+                mov r1.xyz, -r0.xyzx
+                add r1.xyz, r1.xyzx, cb0[72].xyzx
+                mul r1.xyz, r0.wwww, r1.xyzx
+                add r0.xyz, r0.xyzx, r1.xyzx  // litColor<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                
+                #line 76
+                mul r0.w, cb1[14].w, l(1.000000)  // litColor<3>
+                mov o0.xyz, r0.xyzx  // PS<0:NaN:Inf,1:NaN:Inf,2:NaN:Inf>
+                mov o0.w, r0.w  // PS<3>
                 ret 
-                // Approximately 2 instruction slots used
+                // Approximately 224 instruction slots used
                             
             };
+            GeometryShader = NULL;
             RasterizerState = SolidMode;
         }
 

@@ -14,9 +14,7 @@ namespace GLib {
 
 enum BlockType
 {
-	BlockType_Default = 0,
-
-	BlockType_Grass,
+	BlockType_Grass = 0,
 	BlockType_Dirt,
 	BlockType_Water,
 	BlockType_Stone,
@@ -92,7 +90,7 @@ public:
 	void CreateMesh();
 
 	// Adds a cube to the vertex buffer.
-	void AddCube(int x, int y, int z);
+	void AddCube(int x, int y, int z, BlockType type = BlockType::BlockType_Grass);
 
 	void BuildMeshPrimitive();
 	void Rebuild();

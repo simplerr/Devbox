@@ -54,7 +54,15 @@ Chunk::Chunk(float x, float y, float z)
 			for(int z = 0; z < CHUNK_SIZE; z++)
 			{
 				mBlocks[x][y][z] = false;
-				mBlockTypes[x][y][z] = BlockType_Grass;
+
+				// Randomize block type (temporary).
+				int r = rand() % 3;
+				if(r == 0)
+					mBlockTypes[x][y][z] = BlockType_Grass;
+				else if(r == 1)
+					mBlockTypes[x][y][z] = BlockType_Dirt;
+				else if(r == 2)
+					mBlockTypes[x][y][z] = BlockType_Water;
 			}
 		}
 	}
@@ -121,7 +129,7 @@ void Chunk::CreateMesh()
 						if(posY > mMaxHeight)
 							mMaxHeight = posY;
 
-						AddCube(mPosition.x + x*VOXEL_SIZE + (float)VOXEL_SIZE/2 , posY, mPosition.z + z*VOXEL_SIZE + (float)VOXEL_SIZE/2);
+						AddCube(mPosition.x + x*VOXEL_SIZE + (float)VOXEL_SIZE/2 , posY, mPosition.z + z*VOXEL_SIZE + (float)VOXEL_SIZE/2, (BlockType)mBlockTypes[x][y][z]);
 					}
 				}
 				else
@@ -401,7 +409,7 @@ bool Chunk::IsBlock(const BlockIndex& blockIndex)
 }
 
 // Adds a cube to the vertex buffer.
-void Chunk::AddCube(int x, int y, int z)
+void Chunk::AddCube(int x, int y, int z, BlockType type)
 {
 	// Create the vertices.
 	float w2, h2, d2;
@@ -415,40 +423,40 @@ void Chunk::AddCube(int x, int y, int z)
 		return;
 
 	// Fill in the front face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 0] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 1] = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 2] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 3] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 0] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 1] = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 2] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 0.0f, -1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 3] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, 0.0f, -1.0f, type);
 
 	// Fill in the back face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 4] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 5] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 6] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
-	ChunkManager::TempChunkVertices[n*24 + 7] = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f);
+	ChunkManager::TempChunkVertices[n*24 + 4] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 5] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, 0.0f, 1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 6] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 7] = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 0.0f, 1.0f, type);
 
 	// Fill in the top face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 8]  = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 9]  = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 10] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 11] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 8]  = VoxelVertex(x -w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 9]  = VoxelVertex(x -w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 10] = VoxelVertex(x +w2, y +h2, z +d2, 0.0f, 1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 11] = VoxelVertex(x +w2, y +h2, z -d2, 0.0f, 1.0f, 0.0f, type);
 
 	// Fill in the bottom face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 12] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 13] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 14] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 15] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 12] = VoxelVertex(x -w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 13] = VoxelVertex(x +w2, y -h2, z -d2, 0.0f, -1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 14] = VoxelVertex(x +w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 15] = VoxelVertex(x -w2, y -h2, z +d2, 0.0f, -1.0f, 0.0f, type);
 
 	// Fill in the left face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 16] = VoxelVertex(x -w2, y -h2, z +d2, -1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 17] = VoxelVertex(x -w2, y +h2, z +d2, -1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 18] = VoxelVertex(x -w2, y +h2, z -d2, -1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 19] = VoxelVertex(x -w2, y -h2, z -d2, -1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 16] = VoxelVertex(x -w2, y -h2, z +d2, -1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 17] = VoxelVertex(x -w2, y +h2, z +d2, -1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 18] = VoxelVertex(x -w2, y +h2, z -d2, -1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 19] = VoxelVertex(x -w2, y -h2, z -d2, -1.0f, 0.0f, 0.0f, type);
 
 	// Fill in the right face vertex data.
-	ChunkManager::TempChunkVertices[n*24 + 20] = VoxelVertex(x +w2, y -h2, z -d2, 1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 21] = VoxelVertex(x +w2, y +h2, z -d2, 1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 22] = VoxelVertex(x +w2, y +h2, z +d2, 1.0f, 0.0f, 0.0f);
-	ChunkManager::TempChunkVertices[n*24 + 23] = VoxelVertex(x +w2, y -h2, z +d2, 1.0f, 0.0f, 0.0f);
+	ChunkManager::TempChunkVertices[n*24 + 20] = VoxelVertex(x +w2, y -h2, z -d2, 1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 21] = VoxelVertex(x +w2, y +h2, z -d2, 1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 22] = VoxelVertex(x +w2, y +h2, z +d2, 1.0f, 0.0f, 0.0f, type);
+	ChunkManager::TempChunkVertices[n*24 + 23] = VoxelVertex(x +w2, y -h2, z +d2, 1.0f, 0.0f, 0.0f, type);
 
 	// Fill in the front face index data
 	ChunkManager::TempChunkIndices[n*36 + 0] = n*24 + 0; ChunkManager::TempChunkIndices[n*36 + 1] = n*24 + 1; ChunkManager::TempChunkIndices[n*36 + 2] = n*24 + 2;

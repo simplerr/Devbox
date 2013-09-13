@@ -64,7 +64,7 @@ namespace GLib
 	struct VoxelVertex
 	{
 		VoxelVertex() {}
-		VoxelVertex(const float& x, const float& y, const float& z, const float& nx, const float& ny, const float& nz)
+		VoxelVertex(const float& x, const float& y, const float& z, const float& nx, const float& ny, const float& nz, const int& type)
 		{
 			this->x = x;
 			this->y = y;
@@ -72,8 +72,9 @@ namespace GLib
 			this->nx = nx; 
 			this->ny = ny;
 			this->nz = nz;
+			this->type = type;
 		}		//Position(XMFLOAT3(x, y, z)), Normal(XMFLOAT3(nx, ny, nz)) 
-		VoxelVertex(XMFLOAT3 pos, XMFLOAT3 normal)
+		VoxelVertex(XMFLOAT3 pos, XMFLOAT3 normal, int type)
 		{
 			//: Position(pos), Normal(normal) {}
 
@@ -83,6 +84,7 @@ namespace GLib
 			this->nx = normal.x; 
 			this->ny = normal.y;
 			this->nz = normal.z;
+			this->type = type;
 		}
 
 		/*const VoxelVertex& operator=(const VoxelVertex& vertex)
@@ -95,6 +97,7 @@ namespace GLib
 
 		float x, y, z;
 		float nx, ny, nz;
+		int type;
 
 		/*XMFLOAT3 Position;
 		XMFLOAT3 Normal;*/

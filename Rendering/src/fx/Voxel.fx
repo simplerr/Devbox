@@ -29,6 +29,7 @@ struct VertexIn
 {
 	float3 PosL     : POSITION;
 	float3 NormalL	: NORMAL;
+	int Type		: SIZE;
 };
 
 struct VertexOut
@@ -36,6 +37,7 @@ struct VertexOut
 	float4 PosH		: SV_POSITION;
 	float3 PosW		: POSITION;	
 	float3 NormalW	: NORMAL;
+	int Type		: SIZE;
 };
  
 VertexOut VS(VertexIn vin)
@@ -46,6 +48,7 @@ VertexOut VS(VertexIn vin)
 	vout.PosW     = mul(float4(vin.PosL, 1.0f), gWorld).xyz;
 	vout.NormalW  = mul(vin.NormalL, (float3x3)gWorldInvTranspose);
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
+	vout.Type = vin.Type;
 
 	return vout;
 }
@@ -57,11 +60,23 @@ float4 PS(VertexOut pin) : SV_Target
 
 	float3 toEyeW = normalize(gEyePosW - pin.PosW);
 
-	// Identity as default.
-	float4 texColor = float4(1, 1, 1, 1);
+	// Type?
+	float4 texColor;
+	if(pin.Type == 0)		// Grass
+	{
+		texColor = float4(0, 1, 0, 1);
+	}
+	else if(pin.Type == 1)	// Dirt
+	{
+		texColor = float4(1, 0, 0, 1);
+	}
+	else if(pin.Type == 2)	// Water
+	{
+		texColor = float4(0, 0, 1, 1);
+	}
 
 	// Apply lighting.
-	float4 litColor = float4(1, 1, 1, 1);
+	float4 litColor;
 	float shadow = 1.0f;
 	ApplyLighting(gNumLights, gLights, gMaterial, pin.PosW, pin.NormalW, toEyeW, texColor, shadow, litColor);
 
@@ -71,6 +86,12 @@ float4 PS(VertexOut pin) : SV_Target
 
 	// Blend the fog color and the lit color.
 	litColor = lerp(litColor, gFogColor, fogLerp);
+
+	/**
+		2nd fog effect.
+	*/
+	//fogLerp = saturate(distToEye / 100.0f); 
+	//litColor += lerp(litColor, litColor, fogLerp) / 4;
 
 	// Common to take alpha from diffuse material.
 	litColor.a = gMaterial.diffuse.a * texColor.a;

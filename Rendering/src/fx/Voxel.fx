@@ -90,8 +90,18 @@ float4 PS(VertexOut pin) : SV_Target
 	/**
 		2nd fog effect.
 	*/
-	//fogLerp = saturate(distToEye / 100.0f); 
-	//litColor += lerp(litColor, litColor, fogLerp) / 4;
+
+	fogLerp = min(saturate(25.0f / distToEye), 0.3); 
+	litColor = lerp(litColor, float4(0, 0.3, 0, 1), fogLerp);
+
+	fogLerp = min(saturate(10.0f / distToEye), 0.3); 
+	litColor = lerp(litColor, float4(0, 0.3, 0, 1), fogLerp);
+
+	fogLerp = min(saturate(5.0f / distToEye), 0.3); 
+	litColor = lerp(litColor, float4(0, 0.3, 0, 1), fogLerp);
+
+	fogLerp = min(saturate(1.0f / distToEye), 0.3); 
+	litColor = lerp(litColor, float4(0, 0.3, 0, 1), fogLerp);
 
 	// Common to take alpha from diffuse material.
 	litColor.a = gMaterial.diffuse.a * texColor.a;

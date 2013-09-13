@@ -35,13 +35,13 @@ player = {
 		self.y_speed = 0;
 
 		-- TEMPORARY for changing the player light data
-		set_fog_range(80);
-		set_fog_start(40);
+		set_fog_range(250);
+		set_fog_start(170);
 		
-		set_light_intensity(0, 0.4, 0.0, 0);
+		set_light_intensity(0, 0.7, 0.0, 0);
 		
-		set_light_att(1, 1, 0, 0);
-		set_light_intensity(1, 0, 0.7, 0.0);
+		set_light_att(1, 1, 0.0, 0);
+		set_light_intensity(1, 0.2, 0.3, 0.0);
 	end,
 	
 	-- The Player::Update() function

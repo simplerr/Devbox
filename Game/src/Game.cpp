@@ -225,7 +225,7 @@ void Game::InitWorld()
 	light->SetIntensity(0.0f, 1.0f, 0.0f);
 	light->SetSpot(1.0f);
 	light->SetAtt(0, 0.1f, 0);
-	light->SetRange(200);
+	light->SetRange(2000);
 	mWorld->AddObject(light);
 
 	mChunkManager = new ChunkManager;

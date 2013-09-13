@@ -60,9 +60,9 @@ Chunk::Chunk(float x, float y, float z)
 				if(r == 0)
 					mBlockTypes[x][y][z] = BlockType_Grass;
 				else if(r == 1)
-					mBlockTypes[x][y][z] = BlockType_Dirt;
+					mBlockTypes[x][y][z] = BlockType_Grass;
 				else if(r == 2)
-					mBlockTypes[x][y][z] = BlockType_Water;
+					mBlockTypes[x][y][z] = BlockType_Grass;
 			}
 		}
 	}

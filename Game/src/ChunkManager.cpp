@@ -210,8 +210,8 @@ void ChunkManager::Draw(GLib::Graphics* pGraphics)
 	GLib::Effects::VoxelFX->SetEyePosition(pGraphics->GetCamera()->GetPosition());
 	GLib::Effects::VoxelFX->SetLights(pGraphics->GetLightList());
 	GLib::Effects::VoxelFX->SetFogColor(pGraphics->GetFogColor());
-	GLib::Effects::VoxelFX->SetFogStart(40.0f);
-	GLib::Effects::VoxelFX->SetFogRange(200.0f);
+	GLib::Effects::VoxelFX->SetFogStart(pGraphics->GetFogStart());
+	GLib::Effects::VoxelFX->SetFogRange(pGraphics->GetFogRange());
 	GLib::Effects::VoxelFX->SetMaterial(GLib::Material(GLib::Colors::White));
 
 	GLib::Effects::VoxelFX->Apply(GLib::GlobalApp::GetD3DContext());

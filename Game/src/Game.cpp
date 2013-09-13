@@ -159,8 +159,14 @@ void Game::ReloadActors()
 
 	ScriptExports::Register();
 
-	// Register the ChunkManager script functions.
 	LuaPlus::LuaObject globals = LuaManager::Get()->GetGlobalVars();
+
+	// Register the World script function.
+	globals.RegisterDirect("set_light_position", *mWorld, &World::LuaSetLightPosition);		
+	globals.RegisterDirect("set_light_att", *mWorld, &World::LuaSetLightAtt);		
+	globals.RegisterDirect("set_light_intensity", *mWorld, &World::LuaSetLightIntensity);		
+
+	// Register the ChunkManager script functions.
 	globals.RegisterDirect("get_block_height", *mChunkManager, &ChunkManager::LuaGetHeight);
 
 
@@ -208,7 +214,18 @@ void Game::InitWorld()
 	light->SetRotation(XMFLOAT3(1, -0.5, 0));
 	light->SetLightType(DIRECTIONAL_LIGHT);
 	light->SetMaterials(GLib::Material(GLib::Colors::White));
-	light->SetIntensity(0.5f, 0.5f, 0.5f);
+	light->SetIntensity(0.5f, 0.5f, 0.2f);
+	mWorld->AddObject(light);
+
+	light = new GLib::LightObject();
+	light->SetPosition(mWorld->GetWorldCenter() + XMFLOAT3(20, 50, 20));
+	light->SetRotation(XMFLOAT3(1, -0.5, 0));
+	light->SetLightType(POINT_LIGHT);
+	light->SetMaterials(GLib::Material(GLib::Colors::White));
+	light->SetIntensity(0.0f, 1.0f, 0.0f);
+	light->SetSpot(1.0f);
+	light->SetAtt(0, 0.1f, 0);
+	light->SetRange(200);
 	mWorld->AddObject(light);
 
 	mChunkManager = new ChunkManager;

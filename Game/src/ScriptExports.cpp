@@ -26,6 +26,9 @@ void ScriptExports::Register()
 	globals.RegisterDirect("set_camera_pos", &ScriptExports::SetCameraPosition);
 	globals.RegisterDirect("set_camera_dir", &ScriptExports::SetCameraDirection);
 	globals.RegisterDirect("set_camera_target", &ScriptExports::SetCameraTarget);
+
+	globals.RegisterDirect("set_fog_range", &ScriptExports::SetFogRange);
+	globals.RegisterDirect("set_fog_start", &ScriptExports::SetFogStart);
 }
 
 bool ScriptExports::KeyPressed(const char* key)
@@ -125,6 +128,16 @@ void ScriptExports::SetCameraDirection(float x, float y, float z)
 void ScriptExports::SetCameraTarget(float x, float y, float z)
 {
 	GLib::GlobalApp::GetGraphics()->GetCamera()->SetTarget(XMFLOAT3(x, y, z));
+}
+
+void ScriptExports::SetFogStart(float start)
+{
+	GLib::GlobalApp::GetGraphics()->SetFogStart(start);
+}
+
+void ScriptExports::SetFogRange(float range)
+{
+	GLib::GlobalApp::GetGraphics()->SetFogRange(range);
 }
 
 int ScriptExports::MapToKey(std::string str)

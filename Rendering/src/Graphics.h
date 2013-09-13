@@ -87,6 +87,8 @@ namespace GLib
 		void SetEffectParameters(BasicEffect* effect, CXMMATRIX worldMatrix, Texture2D* texture, Texture2D* normalMap, Material material);
 		void SetLightList(LightList* lightList);
 		void SetFogColor(XMFLOAT4 color);
+		void SetFogStart(float start);
+		void SetFogRange(float range);
 		void SetRenderTarget(RenderTarget* renderTarget);
 		void SetCamera(Camera* pCamera);
 		void RestoreRenderTarget();
@@ -102,6 +104,8 @@ namespace GLib
 		PrimitiveFactory*		GetPrimitiveFactory();
 		ModelImporter*			GetModelImporter();
 		XMFLOAT4				GetFogColor();
+		float					GetFogStart();
+		float					GetFogRange();
 		float					GetClientWidth();
 		float					GetClientHeight();
 		bool					IsRenderingShadows();
@@ -121,6 +125,8 @@ namespace GLib
 		PrimitiveFactory* mPrimitiveFactory;
 		ModelImporter*	mModelImporter;
 		XMFLOAT4		mFogColor;
+		float			mFogStart;
+		float			mFogRange;
 		bool			mRenderingShadows;
 
 		// Font.

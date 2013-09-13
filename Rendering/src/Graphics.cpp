@@ -43,6 +43,8 @@ Graphics::Graphics()
 
 	// Used for clear scene and fog.
 	SetFogColor(Colors::Silver);
+	SetFogStart(40);
+	SetFogRange(200);
 }
 	
 //! Cleans up and frees all pointers.
@@ -545,6 +547,26 @@ void Graphics::SetCamera(Camera* pCamera)
 void Graphics::SetFogColor(XMFLOAT4 color)
 {
 	mFogColor = color;
+}
+
+void Graphics::SetFogStart(float start)
+{
+	mFogStart = start;
+}
+
+void Graphics::SetFogRange(float range)
+{
+	mFogRange = range;
+}
+
+float Graphics::GetFogStart()
+{
+	return mFogStart;
+}
+
+float Graphics::GetFogRange()
+{
+	return mFogRange;
 }
 
 float Graphics::GetClientWidth()

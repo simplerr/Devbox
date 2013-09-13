@@ -74,6 +74,11 @@ namespace GLib {
 		void AddObjectCollisionListener(void(T::*_callback)(Object3D*, Object3D*), T* _object)	{
 			OnObjectCollision = boost::bind(_callback, _object, _1, _2);
 		}
+
+		// Lua functions
+		void LuaSetLightPosition(int id, float x, float y, float z);
+		void LuaSetLightAtt(int id, float x, float y, float z);
+		void LuaSetLightIntensity(int id, float ambient, float diffuse, float specular);
 	private:
 		// Callbacks.
 		boost::function<void(Object3D*)>			OnObjectAdded;

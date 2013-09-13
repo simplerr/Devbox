@@ -319,4 +319,28 @@ namespace GLib
 		else
 			return false;
 	}
+
+	void World::LuaSetLightPosition(int id, float x, float y, float z)
+	{
+		if(id < mLightList.size())
+		{
+			mLightList[id]->SetPosition(x, y, z);
+		}
+	}
+
+	void World::LuaSetLightAtt(int id, float x, float y, float z)
+	{
+		if(id < mLightList.size())
+		{
+			mLightList[id]->SetAtt(x, y, z);
+		}
+	}
+
+	void World::LuaSetLightIntensity(int id, float ambient, float diffuse, float specular)
+	{
+		if(id < mLightList.size())
+		{
+			mLightList[id]->SetIntensity(ambient, diffuse, specular);
+		}
+	}
 }	// End of Graphics Library namespace.

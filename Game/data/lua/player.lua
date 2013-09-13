@@ -23,7 +23,7 @@ player = {
 
 	on_created = function(self)
 		local cameraPos = get_camera_pos();
-		self:SetPosition(cameraPos.x, 200, cameraPos.z);
+		self:SetPosition(cameraPos.x, 00, cameraPos.z);
 		
 		self.counter = 0.0;
 		self.dir_x = 1;
@@ -33,6 +33,15 @@ player = {
 		self.camera_dir = 1;
 
 		self.y_speed = 0;
+
+		-- TEMPORARY for changing the player light data
+		set_fog_range(80);
+		set_fog_start(40);
+		
+		set_light_intensity(0, 0.4, 0.0, 0);
+		
+		set_light_att(1, 1, 0, 0);
+		set_light_intensity(1, 0, 0.7, 0.0);
 	end,
 	
 	-- The Player::Update() function
@@ -141,9 +150,12 @@ player = {
 		self.counter = 0.0;
 
 		-- Update the cameras position
-		local newCameraPos = self:GetPosition();
-		set_camera_pos(newCameraPos.x, newCameraPos.y, newCameraPos.z);
+		local player_pos = self:GetPosition();
+		set_camera_pos(player_pos.x, player_pos.y, player_pos.z);
 		set_camera_dir(cameraDir.x, cameraDir.y, cameraDir.z);
+
+		-- Update the players light position
+		set_light_position(1, player_pos.x,  player_pos.y, player_pos.z);
 	end,
 	
 	on_draw = function(self)

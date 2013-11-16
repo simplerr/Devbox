@@ -122,48 +122,16 @@ void ChunkManager::Update(float dt)
 	if(input->KeyPressed('C'))
 		testFrustum = GLib::GlobalApp::GetCamera()->GetFrustum();
 
+	// Erase block.
 	if(input->KeyPressed(VK_LBUTTON))
 	{
-		GLib::Ray ray = GLib::GlobalApp::GetCamera()->GetWorldPickingRay();
-		XMVECTOR origin = XMLoadFloat3(&ray.origin);
-		XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
+		EraseBlock(GLib::GlobalApp::GetCamera()->GetWorldPickingRay());
+	}
 
-		// Intersected chunks sorted by distance.
-		vector<ChunkIntersection> intersectedChunks;
-
-		// Broadphase just testing AABBs.
-		float dist = 99999;
-		for(int i = 0; i < mChunkMap.size(); i++)
-		{
-			if(mChunkMap[i] != nullptr && mChunkMap[i]->RayIntersectBox(origin, dir, dist))
-				intersectedChunks.push_back(ChunkIntersection(mChunkMap[i], dist));
-		}
-
-		// Sort the intersection array.
-		std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
-
-		dist = 99999;
-		for(int i = 0; i < intersectedChunks.size(); i++)
-		{
-			if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
-			{
-				XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction;
-
-				float add = 0.01f;
-				intersectPosition.x += ray.direction.x < 0 ? -add : add;
-				intersectPosition.y += ray.direction.y < 0 ? -add : add;
-				intersectPosition.z += ray.direction.z < 0 ? -add : add;
-				BlockIndex blockIndex = intersectedChunks[i].chunk->PositionToBlockId(intersectPosition);
-
-				intersectedChunks[i].chunk->SetBlockActive(blockIndex, false);
-				intersectedChunks[i].chunk->Rebuild();
-
-				// Break the loop since this was the closest chunk.
-				// If the mesh ray intersection returns false the next chunk
-				// in the intersectedChunks list is tested.
-				break;
-			}
-		}
+	// Spawn block.
+	if(input->KeyPressed(VK_RBUTTON))
+	{
+		SpawnBlock(GLib::GlobalApp::GetCamera()->GetWorldPickingRay());
 	}
 
 	// To expensive when the chunk map is so large,
@@ -187,6 +155,93 @@ void ChunkManager::Update(float dt)
 		mTestBox.z += speed;
 	if(input->KeyDown(VK_RIGHT))
 		mTestBox.z -= speed;
+}
+
+void ChunkManager::EraseBlock(const GLib::Ray& ray)
+{
+	XMVECTOR origin = XMLoadFloat3(&ray.origin);
+	XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
+
+	// Intersected chunks sorted by distance.
+	vector<ChunkIntersection> intersectedChunks;
+
+	// Broadphase just testing AABBs.
+	float dist = 99999;
+	for(int i = 0; i < mChunkMap.size(); i++)
+	{
+		if(mChunkMap[i] != nullptr && mChunkMap[i]->RayIntersectBox(origin, dir, dist))
+			intersectedChunks.push_back(ChunkIntersection(mChunkMap[i], dist));
+	}
+
+	// Sort the intersection array.
+	std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
+
+	dist = 99999;
+	for(int i = 0; i < intersectedChunks.size(); i++)
+	{
+		if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
+		{
+			XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction;
+
+			float add = 0.01f;
+			intersectPosition.x += ray.direction.x < 0 ? -add : add;
+			intersectPosition.y += ray.direction.y < 0 ? -add : add;
+			intersectPosition.z += ray.direction.z < 0 ? -add : add;
+			BlockIndex blockIndex = intersectedChunks[i].chunk->PositionToBlockId(intersectPosition);
+
+			intersectedChunks[i].chunk->SetBlockActive(blockIndex, false);
+			intersectedChunks[i].chunk->Rebuild();
+
+			// Break the loop since this was the closest chunk.
+			// If the mesh ray intersection returns false the next chunk
+			// in the intersectedChunks list is tested.
+			break;
+		}
+	}
+}
+
+void ChunkManager::SpawnBlock(const GLib::Ray& ray)
+{
+	XMVECTOR origin = XMLoadFloat3(&ray.origin);
+	XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&ray.direction));
+
+	// Intersected chunks sorted by distance.
+	vector<ChunkIntersection> intersectedChunks;
+
+	// Broadphase just testing AABBs.
+	float dist = 99999;
+	for(int i = 0; i < mChunkMap.size(); i++)
+	{
+		if(mChunkMap[i] != nullptr && mChunkMap[i]->RayIntersectBox(origin, dir, dist))
+			intersectedChunks.push_back(ChunkIntersection(mChunkMap[i], dist));
+	}
+
+	// Sort the intersection array.
+	std::sort(intersectedChunks.begin(), intersectedChunks.end(), ChunkIntersectionCompare);
+
+	dist = 99999;
+	for(int i = 0; i < intersectedChunks.size(); i++)
+	{
+		if(intersectedChunks[i].chunk->RayIntersectMesh(origin, dir, dist))
+		{
+			XMFLOAT3 intersectPosition = ray.origin + dist * ray.direction * 0.98;
+
+			// At the chunks borders this doesn't work
+			// Taking * 0.98 means that the position where the new block should be created is inside another chunk
+			// We need to find out which chunk it is
+			StrongChunkPtr spawnChunk = PositionToChunk(intersectPosition);
+			BlockIndex blockIndex = spawnChunk->PositionToBlockId(intersectPosition);
+
+			spawnChunk->SetBlockActive(blockIndex, true);
+			spawnChunk->SetBlockType(blockIndex, BlockType_Water);
+			spawnChunk->Rebuild();
+
+			// Break the loop since this was the closest chunk.
+			// If the mesh ray intersection returns false the next chunk
+			// in the intersectedChunks list is tested.
+			break;
+		}
+	}
 }
 
 void ChunkManager::Draw(GLib::Graphics* pGraphics)
@@ -437,6 +492,22 @@ void ChunkManager::DrawDebug(GLib::Graphics* pGraphics)
 	pGraphics->DrawText(buffer, 40, 600, 30);
 
 	pGraphics->DrawText("Visible chunks: " + to_string(mRenderList.size()), 10, 500, 40);
+}
+
+StrongChunkPtr ChunkManager::PositionToChunk(XMFLOAT3 position)
+{
+	ChunkCoord chunkCoord = PositionToChunkCoord(position);
+
+	for(int i = 0; i < mChunkMap.size(); i++)
+	{
+		if(mChunkMap[i] == nullptr)
+			continue;
+
+		if(mChunkMap[i]->GetChunkCoord() == chunkCoord)
+			return mChunkMap[i];
+	}
+
+	return nullptr;
 }
 
 ChunkCoord ChunkManager::PositionToChunkCoord(XMFLOAT3 position)

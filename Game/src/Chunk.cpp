@@ -364,6 +364,11 @@ bool Chunk::GetRebuildFlag()
 	return mRebuildFlag;
 }
 
+ChunkCoord Chunk::GetChunkCoord()
+{
+	return mChunkIndex;
+}
+
 int Chunk::GetNumBlocks()
 {
 	return mBlockCount;
@@ -393,11 +398,19 @@ void Chunk::SetBlockActive(BlockIndex blockIndex, bool active)
 
 		mBlocks[blockIndex.x][blockIndex.y][blockIndex.z] = active;
 	}
-	else
+}
+
+void Chunk::SetBlockType(BlockIndex blockIndex, BlockType type)
+{
+	if(blockIndex.x >= 0 && blockIndex.x < CHUNK_SIZE && blockIndex.y >= 0 && blockIndex.y < CHUNK_HEIGHT && blockIndex.z >= 0 && blockIndex.z < CHUNK_SIZE)
 	{
-		GLIB_ERROR("Invalid block index");
+		//if(mBlocks[blockIndex.x][blockIndex.y][blockIndex.z] != active)
+		//	SetRebuildFlag();
+
+		mBlockTypes[blockIndex.x][blockIndex.y][blockIndex.z] = type;
 	}
 }
+
 
 bool Chunk::IsBlock(const BlockIndex& blockIndex)
 {

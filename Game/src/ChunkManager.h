@@ -68,10 +68,14 @@ public:
 	//ChunkId PositionToChunkId(XMFLOAT3 position);
 	ChunkCoord PositionToChunkCoord(XMFLOAT3 position);
 	ChunkCoord PositionToChunkCoord(float x, float z);
+	StrongChunkPtr PositionToChunk(XMFLOAT3 position);
 
 	int GetHeight(XMFLOAT3 position);
 
 	void AddVoxel(float x, float y, float z);
+
+	void EraseBlock(const GLib::Ray& ray);
+	void SpawnBlock(const GLib::Ray& ray);
 
 	// Lua exports.
 	int LuaGetHeight(float x, float y, float z);

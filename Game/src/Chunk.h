@@ -104,6 +104,7 @@ public:
 
 	void SetColor(XMFLOAT4 color);
 	void SetBlockActive(BlockIndex blockIndex, bool active);
+	void SetBlockType(BlockIndex blockIndex, BlockType type);
 	void SetRebuildFlag();
 	void SetChunkIndex(ChunkCoord index);
 
@@ -111,6 +112,7 @@ public:
 	XNA::AxisAlignedBox GetAxisAlignedBox();
 	bool GetRebuildFlag();
 	int GetNumBlocks();
+	ChunkCoord GetChunkCoord();
 	bool IsBlock(const BlockIndex& blockIndex);
 
 	// Returns the index to the block that position is inside.
